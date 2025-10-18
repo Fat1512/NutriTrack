@@ -1,0 +1,9 @@
+Compare the following detected ingredients with verified results.
+
+Detected ingredients:
+{ingredients}
+
+Nutrition database matches:
+{final_ingredients}
+
+Please return a clean, verified list of ingredients with corrections if needed.
