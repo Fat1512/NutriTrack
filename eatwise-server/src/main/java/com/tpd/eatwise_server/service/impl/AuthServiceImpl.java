@@ -5,9 +5,10 @@ import com.tpd.eatwise_server.dto.UserAuthDTO;
 import com.tpd.eatwise_server.dto.request.LoginRequest;
 import com.tpd.eatwise_server.dto.request.RegisterRequest;
 import com.tpd.eatwise_server.entity.User;
-import com.tpd.eatwise_server.exceptions.AccessDeniedException;
+import com.tpd.eatwise_server.exceptions.BadRequestException;
 import com.tpd.eatwise_server.repository.UserRepository;
 import com.tpd.eatwise_server.service.AuthService;
+import com.tpd.eatwise_server.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -52,6 +53,13 @@ public class AuthServiceImpl implements AuthService {
                 .user(user)
                 .tokenDTO(tokenDTO)
                 .build();
+    }
+
+    @Override
+    public User getCurrentUser() {
+        Authentication authentication = SecurityUtils.getAuthentication();
+        return userRepository.findByUsername(((UserDetails) authentication.getPrincipal()).getUsername())
+                .orElseThrow(() -> new BadRequestException("User doesn't exist"));
     }
 
     @Override
