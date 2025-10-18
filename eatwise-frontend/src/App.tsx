@@ -1,5 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import AppLayout from "./ui/AppLayout";
+import { SidebarProvider } from "./context/SidebarContext";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -10,9 +12,16 @@ const queryClient = new QueryClient({
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes></Routes>
-      </BrowserRouter>
+      <SidebarProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<AppLayout />}>
+              <Route index element={<div> HOME PAGE </div>} />
+              <Route path="/" element={<div> HOME PAGE </div>} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </SidebarProvider>
     </QueryClientProvider>
   );
 };
