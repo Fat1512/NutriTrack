@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: gppm
+  data:
+    mongodb:
+      authentication-database: admin
+      database: ${DB_ASSET_MONGO}
+      username: ${MONGO_USERNAME}
+      password: ${MONGO_PASSWORD}
+      host: ${MONGO_HOST}
+      port: ${MONGO_PORT}
+
+server:
+  port: 8080
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 50MB
+    context-path: /eatwise-service
