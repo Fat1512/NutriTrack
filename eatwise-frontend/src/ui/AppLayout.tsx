@@ -13,7 +13,7 @@ function AppLayout() {
       <main
         className={`w-full ${
           expanded ? "pl-48" : "pl-12"
-        } transition-all duration-500 bg-white flex flex-col pb-20 pr-0 pt-0`}
+        } transition-all duration-500 flex flex-col pb-20 pr-0 pt-0`}
       >
         <Header />
 
