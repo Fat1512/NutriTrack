@@ -9,6 +9,11 @@ spring:
       password: ${MONGO_PASSWORD}
       host: ${MONGO_HOST}
       port: 27017
+app:
+  token:
+    secret: ${AUTH_SECRET_KEY}
+    expirationTime: 200000
+    refreshTime: 23123132
 
 server:
   port: 8080
