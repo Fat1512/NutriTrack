@@ -190,19 +190,6 @@ const LoginPage = () => {
               )}
             </Button>
 
-            <Box sx={{ textAlign: "center", mt: 2 }}>
-              <Link
-                to="/forgot-password"
-                style={{
-                  color: "#667eea",
-                  textDecoration: "none",
-                  fontSize: "0.9rem",
-                }}
-              >
-                Forgot your password?
-              </Link>
-            </Box>
-
             <Box sx={{ textAlign: "center", mt: 3 }}>
               <Typography variant="body2" color="text.secondary">
                 Don't have an account?{" "}

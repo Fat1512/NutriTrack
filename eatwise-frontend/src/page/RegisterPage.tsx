@@ -43,7 +43,6 @@ const RegisterPage = () => {
 
     try {
       await registerUser(data.username, data.password, data.confirmedPassword);
-      // Navigate to login page after successful registration
       navigate("/login");
     } catch (error) {
       setRegisterError(
@@ -145,8 +144,8 @@ const RegisterPage = () => {
               {...register("password", {
                 required: "Password is required",
                 minLength: {
-                  value: 6,
-                  message: "Password must be at least 6 characters",
+                  value: 3,
+                  message: "Password must be at least 3 characters",
                 },
               })}
               error={!!errors.password}

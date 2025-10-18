@@ -6,6 +6,7 @@ import { SidebarProvider } from "./context/SidebarContext";
 import { AuthProvider } from "./context/AuthContext";
 import LoginPage from "./page/LoginPage";
 import RegisterPage from "./page/RegisterPage";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -13,6 +14,7 @@ const queryClient = new QueryClient({
     },
   },
 });
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -31,7 +33,7 @@ const App = () => {
                 }
               >
                 <Route index element={<div> HOME PAGE </div>} />
-                {/* <Route path="/" element={<div> HOME PAGE </div>} /> */}
+                <Route path="/" element={<div> HOME PAGE </div>} />
               </Route>
             </Routes>
           </BrowserRouter>
