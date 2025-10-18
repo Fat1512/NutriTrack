@@ -4,11 +4,11 @@ spring:
   data:
     mongodb:
       authentication-database: admin
-      database: ${DB_ASSET_MONGO}
+      database: ${DB_NAME}
       username: ${MONGO_USERNAME}
       password: ${MONGO_PASSWORD}
       host: ${MONGO_HOST}
-      port: ${MONGO_PORT}
+      port: 27017
 
 server:
   port: 8080
@@ -18,3 +18,7 @@ server:
       max-file-size: 100MB
       max-request-size: 50MB
     context-path: /eatwise-service
+
+aws:
+  accessKey:
+  secretKey:

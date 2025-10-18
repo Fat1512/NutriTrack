@@ -1,6 +1,4 @@
-package com.tanle.tland.post_service.utils;
-
-import com.tanle.tland.post_service.entity.PostStatus;
+package com.tpd.eatwise_server.utils;
 
 public class AppConstant {
     public static final String PAGE_SIZE = "10";

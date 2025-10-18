@@ -1,4 +1,4 @@
-package com.tanle.tland.asset_service.response;
+package com.tpd.eatwise_server.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
