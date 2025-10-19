@@ -3,6 +3,9 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import AppLayout from "./ui/AppLayout";
 import ProtectedRoute from "./ui/ProtectedRoute";
 import { SidebarProvider } from "./context/SidebarContext";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
+import RoutinePage from "./page/RoutinePage";
 import { AuthProvider } from "./context/AuthContext";
 import LoginPage from "./page/LoginPage";
 import RegisterPage from "./page/RegisterPage";
@@ -34,11 +37,13 @@ const App = () => {
               >
                 <Route index element={<div> HOME PAGE </div>} />
                 <Route path="/" element={<div> HOME PAGE </div>} />
+                <Route path="/routine" element={<RoutinePage />} />
               </Route>
             </Routes>
           </BrowserRouter>
         </SidebarProvider>
       </AuthProvider>
+      <ToastContainer />
     </QueryClientProvider>
   );
 };

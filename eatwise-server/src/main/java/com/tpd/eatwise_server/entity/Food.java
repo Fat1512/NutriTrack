@@ -20,6 +20,7 @@ import java.util.List;
 public class Food {
     @Id
     private String id;
+    private String name;
     private LocalDateTime createdAt;
     private List<IngredientFood> ingredients;
     private String image;

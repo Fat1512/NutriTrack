@@ -1,6 +1,7 @@
 package com.tpd.eatwise_server.controller;
 
 import com.tpd.eatwise_server.dto.request.FoodCreateRequest;
+import com.tpd.eatwise_server.dto.response.FoodDetailResponse;
 import com.tpd.eatwise_server.dto.response.MessageResponse;
 import com.tpd.eatwise_server.dto.response.PageResponse;
 import com.tpd.eatwise_server.service.FoodService;
@@ -16,6 +17,7 @@ import static com.tpd.eatwise_server.utils.AppConstant.*;
 @RestController
 @RequestMapping(value = "/api/v1")
 @RequiredArgsConstructor
+@CrossOrigin(value = "http://localhost:5173")
 public class FoodController {
 
     private final FoodService foodService;
@@ -27,9 +29,15 @@ public class FoodController {
         return new ResponseEntity<>(messageResponse, HttpStatus.CREATED);
     }
 
+    @GetMapping("/food/{id}")
+    public ResponseEntity<FoodDetailResponse> getFood(@PathVariable String id) {
+        FoodDetailResponse pageResponse = foodService.getFood(id);
+        return ResponseEntity.ok(pageResponse);
+    }
+
     @GetMapping("/foods")
     public ResponseEntity<PageResponse> getFoods(@RequestParam(value = "page", defaultValue = PAGE_DEFAULT) String page,
-                                                    @RequestParam(value = "size", defaultValue = PAGE_SIZE) String size) {
+                                                 @RequestParam(value = "size", defaultValue = PAGE_SIZE) String size) {
         PageResponse pageResponse = foodService.getFoods(Integer.parseInt(page), Integer.parseInt(size));
         return ResponseEntity.ok(pageResponse);
     }

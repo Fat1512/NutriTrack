@@ -10,7 +10,7 @@ const NAVIGATION_LIST = [
   {
     icon: AiOutlineSchedule,
     label: "Meal Plan",
-    path: "/wms",
+    path: "/routine",
   },
   {
     icon: RiQrScanLine,
