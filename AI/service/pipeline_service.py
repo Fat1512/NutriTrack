@@ -20,10 +20,12 @@ class FoodPipeline:
         print(f"Starting analysis for image(s): {image_paths}")
         start = time.time()
 
+        # describe image 
         detect_prompt = self.prompts.load("detect_ingredients")
         print("Sending detection prompt to LLM...")
         
         detected_text = self.llm.generate(detect_prompt, images=image_paths)
+        print(detected_text)
         ingredients = re.findall(r"[A-Za-z]+(?:\s+[A-Za-z]+)*", detected_text)
         ingredients = [i.strip().lower() for i in ingredients if len(i.strip()) > 1]
         

@@ -2,8 +2,8 @@ import os, json, base64, requests
 from ..base_llm import BaseLLM
 
 class OllamaLLM(BaseLLM):
-    def __init__(self):
-        self.model = os.getenv("OLLAMA_MODEL")
+    def __init__(self, model):
+        self.model = model or os.getenv("OLLAMA_MODEL")
         self.host = os.getenv("OLLAMA_HOST")
 
     def _encode(self, path):

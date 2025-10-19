@@ -1,12 +1,11 @@
 import os
-from .wrapper.ollama_llm import OllamaLLM
-from .wrapper.openai_llm import OpenAILLM
+from .wrapper.ollama import OllamaLLM
+from .wrapper.openai import OpenAILLM
 
-def get_llm():
-    provider = os.getenv("LLM_PROVIDER")  # "ollama" | "openai"
+def get_llm(model, provider):
     if provider == "openai":
         return OpenAILLM()
     elif provider == "ollama":
-        return OllamaLLM()
+        return OllamaLLM(model=model)
     else:
         raise Exception
