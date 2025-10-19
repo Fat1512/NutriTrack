@@ -3,13 +3,12 @@ import { useAuth } from "../context/AuthContext";
 import LoadingPage from "./LoadingPage";
 import type { ReactNode } from "react";
 
-interface ProtectedRouteProps {
+interface OnboardingRouteProps {
   children: ReactNode;
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+const OnboardingRoute = ({ children }: OnboardingRouteProps) => {
   const { isAuthenticated, isLoading, user } = useAuth();
-
   if (isLoading) {
     return <LoadingPage />;
   }
@@ -18,11 +17,11 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (user && !user.isOnboarded) {
-    return <Navigate to="/onboarding" replace />;
+  if (user && user.isOnboarded) {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
 };
 
-export default ProtectedRoute;
+export default OnboardingRoute;

@@ -1,5 +1,5 @@
 import { API, AUTH_REQUEST } from "../utils/axiosConfig";
-import { setAccessToken, clearToken, getAccessToken } from "../utils/helper";
+import { setAccessToken, getAccessToken } from "../utils/helper";
 
 export interface LoginCredentials {
   username: string;
@@ -16,6 +16,16 @@ export interface User {
   id: string;
   username: string;
   password?: string;
+  isOnboarded: boolean;
+  mainGoal: string;
+  gender: string;
+  age: number;
+  height: number;
+  weight: number;
+  targetWeight: number;
+  healthIssues: string[];
+  specificDiet: string[];
+  eatingHabits: string;
 }
 
 export interface TokenDTO {
