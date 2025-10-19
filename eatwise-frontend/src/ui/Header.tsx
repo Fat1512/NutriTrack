@@ -32,10 +32,9 @@ const Header = () => {
   };
 
   return (
-    <div className="flex p-4 justify-between border-b border-gray-200">
+    <div className="flex p-4 justify-between border-b border-gray-200 bg-white mb-5">
       <div>
-        <span className="text-gray-600">{realPath[0]}</span>
-        {realPath.length > 1 && ` / ${realPath.slice(1).join(" / ")}`}
+        <img className="h-20" src="/public/logo.png" />
       </div>
       <div className="flex items-center gap-3">
         {user && (

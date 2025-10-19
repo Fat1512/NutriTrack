@@ -16,6 +16,14 @@ public interface FoodMapper {
     @Mapping(target = "ingredients", ignore = true)
     Food convertToEntity(FoodCreateRequest request);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "ingredients", ignore = true)
+    @Mapping(target = "totalCal", ignore = true)
+    @Mapping(target = "totalProtein", ignore = true)
+    @Mapping(target = "totalFat", ignore = true)
+    @Mapping(target = "totalCarb", ignore = true)
+    Food copy(Food source);
+
     FoodOverviewResponse convertToOverviewResponse(Food food);
 
     FoodDetailResponse convertToDetailResponse(Food food);
@@ -28,6 +36,10 @@ public interface FoodMapper {
     default FoodDetailResponse.IngredientResponse mapIngredient(Food.IngredientFood ingredient) {
         FoodDetailResponse.IngredientResponse response = FoodDetailResponse.IngredientResponse.builder()
                 .id(ingredient.getId())
+                .fat(ingredient.getFat())
+                .cal(ingredient.getCal())
+                .carb(ingredient.getCarb())
+                .protein(ingredient.getProtein())
                 .name(ingredient.getName())
                 .weight(ingredient.getWeight())
                 .build();

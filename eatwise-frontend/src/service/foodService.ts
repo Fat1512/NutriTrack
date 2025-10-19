@@ -1,4 +1,4 @@
-import { API } from "../utils/axiosConfig";
+import { API, AUTH_REQUEST } from "../utils/axiosConfig";
 
 interface FoodsParams {
   page: number;
@@ -9,7 +9,7 @@ export async function getFoods({ page, size }: FoodsParams) {
   try {
     const params: Record<string, string | number> = { page, size };
 
-    const res = await API.get("/foods", {
+    const res = await AUTH_REQUEST.get("/foods", {
       params,
     });
     return res.data;
@@ -22,7 +22,7 @@ export async function getFoods({ page, size }: FoodsParams) {
 
 export async function getFood(id: string) {
   try {
-    const res = await API.get(`/food/${id}`);
+    const res = await AUTH_REQUEST.get(`/food/${id}`);
     return res.data;
   } catch (error: any) {
     throw new Error(

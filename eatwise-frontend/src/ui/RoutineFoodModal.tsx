@@ -1,17 +1,14 @@
 import { Box, Modal } from "@mui/material";
-import { FaRegTrashAlt } from "react-icons/fa";
+
 import Button from "./Button";
-import useGetFood from "../feature/food/useGetFood";
 import MiniSpinner from "./MiniSpinner";
 import { useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import SelectboxIngredients, {
   type IngredientOption,
 } from "../feature/ingredient/SelectboxIngredients";
-import useAddFoodToRoutine, {
-  type MealKey,
-} from "../feature/routine/useAddFoodToRoutine";
-import { toast } from "react-toastify";
+import useAddFoodToRoutine from "../feature/routine/useAddFoodToRoutine";
+import { FaRegTrashAlt } from "react-icons/fa";
 
 const style = {
   position: "absolute" as const,
@@ -28,6 +25,32 @@ const style = {
   padding: "10px 20px",
   color: "black",
 };
+
+export interface Ingredient {
+  id: number;
+  name: string;
+  weight: number;
+  cal: number;
+  fat: number;
+  carb: number;
+  protein: number;
+}
+export interface Food {
+  id: string;
+  image: string;
+  name: string;
+  totalCal: number;
+  totalProtein: number;
+  totalFat: number;
+  totalCarb: number;
+  ingredients: Ingredient[];
+}
+interface RoutineFoodModal {
+  foodRoutine: Food;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
 const INIT_VALUE_INGREDIENT = {
   name: "",
   weight: 0,
@@ -37,54 +60,42 @@ const INIT_VALUE_INGREDIENT = {
   protein: 0,
 };
 
-interface FoodSelectModalProps {
-  meal: MealKey;
-}
-
-function FoodSelectModal({ meal }: FoodSelectModalProps) {
-  const { food, isLoading } = useGetFood();
-  const [searchParams, setSearchParam] = useSearchParams();
-  const [showInput, setShowInput] = useState(false);
+const RoutineFoodModal: React.FC<RoutineFoodModal> = ({
+  foodRoutine,
+  isOpen,
+  onClose,
+}) => {
+  const [searchParams] = useSearchParams();
   const [totals, setTotals] = useState({
-    totalCal: 0,
-    totalProtein: 0,
-    totalFat: 0,
-    totalCarb: 0,
+    totalCal: foodRoutine.totalCal,
+    totalProtein: foodRoutine.totalProtein,
+    totalFat: foodRoutine.totalFat,
+    totalCarb: foodRoutine.totalCarb,
   });
+
+  const [showInput, setShowInput] = useState(false);
   const { isPending, addFoodToRoutine } = useAddFoodToRoutine();
+  const [newIngredient, setNewIngredient] = useState<IngredientOption[]>(
+    foodRoutine.ingredients
+  );
   const [ingredient, setIngredient] = useState<IngredientOption>(
     INIT_VALUE_INGREDIENT
   );
-  const [newIngredient, setNewIngredient] = useState<IngredientOption[]>([]);
 
   const handleCancel = () => {
     setShowInput(false);
-    setIngredient(INIT_VALUE_INGREDIENT);
   };
-  useEffect(() => {
-    if (!isLoading && food) {
-      setTotals({
-        totalCal: food.totalCal,
-        totalProtein: food.totalProtein,
-        totalFat: food.totalFat,
-        totalCarb: food.totalCarb,
-      });
-      setNewIngredient([...food.ingredients]);
-    }
-  }, [isLoading, food]);
-
-  if (isLoading) return <MiniSpinner />;
-  const isOpen = searchParams.get("foodId") ? true : false;
-
   function handleSelectNameIngredient(selected: IngredientOption) {
     setIngredient((prev) => ({ ...prev, ...selected, name: selected.label }));
   }
 
-  function handleOnClose() {
-    searchParams.delete("foodId");
-    setSearchParam(searchParams);
+  function handleOnApply() {
+    addFoodToRoutine({
+      foodId: foodRoutine.id,
+      meal: "BREAKFAST",
+      pickedDate: searchParams.get("pickedDate")!,
+    });
   }
-
   function handleOnAddIngredient() {
     setNewIngredient((prev) => [...prev, ingredient]);
     console.log(ingredient);
@@ -118,30 +129,10 @@ function FoodSelectModal({ meal }: FoodSelectModalProps) {
     });
   }
 
-  function handleOnApply() {
-    addFoodToRoutine(
-      {
-        foodId: food.id,
-        meal,
-        ingredientExtra: newIngredient.map((i) => ({
-          id: i.id!,
-          name: i.name,
-          weight: i.weight,
-        })),
-        pickedDate: searchParams.get("pickedDate")!,
-      },
-      {
-        onSuccess: () => {
-          toast.success("Succefully log food");
-          handleOnClose();
-        },
-      }
-    );
-  }
-  const { name, image } = food;
+  const { name, image } = foodRoutine;
 
   return (
-    <Modal open={isOpen} onClose={handleOnClose}>
+    <Modal open={isOpen} onClose={onClose}>
       <Box sx={style}>
         <div className="flex flex-col items-center justify-center">
           <p className="font-bold text-2xl">{name}</p>
@@ -180,6 +171,7 @@ function FoodSelectModal({ meal }: FoodSelectModalProps) {
                 onClick={() => setShowInput(true)}
                 className="border px-2 py-1 text-center rounded font-medium text-gray-600 cursor-pointer"
               >
+                {" "}
                 +Add
               </p>
             </div>
@@ -244,7 +236,7 @@ function FoodSelectModal({ meal }: FoodSelectModalProps) {
           </div>
         </div>
         <div className="space-x-5 flex justify-end">
-          <Button onClick={handleOnClose} variant="danger">
+          <Button onClick={onClose} variant="danger">
             Cancel
           </Button>
           <Button onClick={() => handleOnApply()} variant="primary">
@@ -254,6 +246,6 @@ function FoodSelectModal({ meal }: FoodSelectModalProps) {
       </Box>
     </Modal>
   );
-}
+};
 
-export default FoodSelectModal;
+export default RoutineFoodModal;
