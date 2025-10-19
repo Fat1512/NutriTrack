@@ -1,14 +1,15 @@
 import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import authService from "../service/authService";
 import type { User } from "../service/authService";
+import useUser from "./useUser";
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<User>;
   register: (
     username: string,
     password: string,
@@ -25,18 +26,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const queryClient = useQueryClient();
 
-  const { data: currentUser, isLoading } = useQuery({
-    queryKey: ["currentUser"],
-    queryFn: authService.getCurrentUser,
-    enabled: authService.isAuthenticated(),
-    retry: false,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+  const { currentUser, isLoading } = useUser();
 
-  const login = async (username: string, password: string): Promise<void> => {
+  const login = async (username: string, password: string): Promise<User> => {
     try {
       const response = await authService.login({ username, password });
       queryClient.setQueryData(["currentUser"], response.user);
+      return response.user;
     } catch (error) {
       throw error;
     }
