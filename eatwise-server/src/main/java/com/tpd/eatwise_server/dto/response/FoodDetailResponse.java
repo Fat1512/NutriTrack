@@ -28,6 +28,10 @@ public class FoodDetailResponse {
     public static class IngredientResponse {
         private int id;
         private String name;
+        private double cal;
+        private double fat;
+        private double carb;
+        private double protein;
         private double weight;
     }
 }

@@ -17,7 +17,6 @@ import static com.tpd.eatwise_server.utils.AppConstant.*;
 @RestController
 @RequestMapping(value = "/api/v1")
 @RequiredArgsConstructor
-@CrossOrigin(value = "http://localhost:5173")
 public class FoodController {
 
     private final FoodService foodService;

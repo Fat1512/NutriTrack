@@ -29,6 +29,7 @@ public class Food {
     private double totalFat;
     private double totalCarb;
 
+
     public void addIngredient(Ingredient ingredient, double weight) {
         if (this.ingredients == null)
             this.ingredients = new ArrayList<>();

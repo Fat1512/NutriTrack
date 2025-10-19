@@ -4,6 +4,7 @@ import { IoCloseCircleOutline } from "react-icons/io5";
 import FoodList from "../feature/food/FoodList";
 import FoodSelectModal from "./FoodSelectModal";
 import { useSearchParams } from "react-router-dom";
+import type { MealKey } from "../feature/routine/useAddFoodToRoutine";
 
 const style = {
   position: "absolute" as const,
@@ -24,9 +25,10 @@ const style = {
 interface ModalProps {
   open: boolean;
   onClose: () => void;
+  mealKey: MealKey;
 }
 
-function LogModal({ open, onClose }: ModalProps) {
+function LogModal({ open, onClose, mealKey }: ModalProps) {
   function handleOnClose() {
     onClose();
     setSelection(null);
@@ -34,9 +36,7 @@ function LogModal({ open, onClose }: ModalProps) {
   const [selection, setSelection] = useState<number | null>(null);
   const height = selection ? 550 : 300;
   const [searhParams] = useSearchParams();
-
-  if (searhParams.get("foodId"))
-    return <FoodSelectModal open={open} onClose={() => console.log("ok")} />;
+  if (searhParams.get("foodId")) return <FoodSelectModal meal={mealKey} />;
 
   return (
     <Modal open={open} onClose={handleOnClose}>

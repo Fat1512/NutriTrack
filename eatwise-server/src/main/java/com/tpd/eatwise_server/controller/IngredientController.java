@@ -15,7 +15,6 @@ import static com.tpd.eatwise_server.utils.AppConstant.PAGE_SIZE;
 @RestController
 @RequestMapping(value = "/api/v1")
 @RequiredArgsConstructor
-@CrossOrigin(value = "http://localhost:5173")
 public class IngredientController {
     private final IngredientService ingredientService;
 
