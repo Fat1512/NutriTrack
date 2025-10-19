@@ -4,10 +4,10 @@ from service.pipeline_service import FoodPipeline
 
 bp = Blueprint("llm", __name__, url_prefix="/api/llm")
 
+pipeline = FoodPipeline()
 
 @bp.route("/analyze", methods=["POST"])
 def analyze_food():
-    pipeline = FoodPipeline()
     image_files = request.files.getlist("images")
 
     image_paths = []
