@@ -40,7 +40,8 @@ export default function MacroChart() {
   return (
     <>
       <div className="bg-white  p-4 shadow-xl rounded-lg">
-        <div className="flex justify-end pb-2">
+        <div className="flex justify-between pb-2">
+          <p className="font-bold text-xl">Nutrients</p>
           <Button onClick={() => setIsOpen((prev) => !prev)}>Edit</Button>
         </div>
         <div className="grid grid-cols-4 gap-4">

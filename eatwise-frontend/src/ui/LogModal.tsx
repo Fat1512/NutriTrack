@@ -2,13 +2,15 @@ import { Box, Modal } from "@mui/material";
 import { useState } from "react";
 import { IoCloseCircleOutline } from "react-icons/io5";
 import FoodList from "../feature/food/FoodList";
+import FoodSelectModal from "./FoodSelectModal";
+import { useSearchParams } from "react-router-dom";
 
 const style = {
   position: "absolute" as const,
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: 550,
+  width: 650,
   height: 300,
   border: "transparent",
   bgcolor: "background.paper",
@@ -30,7 +32,12 @@ function LogModal({ open, onClose }: ModalProps) {
     setSelection(null);
   }
   const [selection, setSelection] = useState<number | null>(null);
-  const height = selection ? 500 : 300;
+  const height = selection ? 550 : 300;
+  const [searhParams] = useSearchParams();
+
+  if (searhParams.get("foodId"))
+    return <FoodSelectModal open={open} onClose={() => console.log("ok")} />;
+
   return (
     <Modal open={open} onClose={handleOnClose}>
       <Box sx={{ ...style, height }}>
@@ -45,6 +52,7 @@ function LogModal({ open, onClose }: ModalProps) {
         <div className="flex flex-col items-center justify-center">
           <p className="font-bold text-2xl">Log Food</p>
         </div>
+
         {!selection && (
           <>
             <div className="my-5 flex flex-col justify-center">
