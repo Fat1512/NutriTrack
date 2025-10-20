@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
@@ -35,6 +36,15 @@ public class Routine {
             new HashMap<>();
 
         this.foods.computeIfAbsent(key, k -> new ArrayList<>()).add(food);
+    }
+
+    public boolean checkActive() {
+        if (foods == null) return false;
+        boolean allMealsEmpty =
+                getFoods().get(Meal.BREAKFAST).isEmpty() &&
+                        getFoods().get(Meal.LUNCH).isEmpty() &&
+                        getFoods().get(Meal.DINNER).isEmpty();
+        return !allMealsEmpty || waterConsumeDay > 0;
     }
 
     public Routine(String userId, LocalDate pickedDate) {

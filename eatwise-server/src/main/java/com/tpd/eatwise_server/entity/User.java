@@ -50,4 +50,14 @@ public class User {
 
     @Field("is_onboarded")
     private Boolean isOnboarded;
+    @Field("goal_cal")
+    private Double goalCal;
+    @Field("goal_protein")
+    private Double goalProtein;
+    @Field("goal_carb")
+    private Double goalCarb;
+    @Field("goal_fat")
+    private Double goalFat;
+    @Field("daily_goal_cal")
+    private Double dailyGoalCal;
 }
