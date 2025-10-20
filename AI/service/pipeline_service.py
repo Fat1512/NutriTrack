@@ -20,43 +20,83 @@ class FoodPipeline:
         print(f"Starting analysis for image(s): {image_paths}")
         start = time.time()
 
-        # describe image 
         detect_prompt = self.prompts.load("detect_ingredients")
         print("Sending detection prompt to LLM...")
         
         detected_text = self.llm.generate(detect_prompt, images=image_paths)
         print(detected_text)
-        ingredients = re.findall(r"[A-Za-z]+(?:\s+[A-Za-z]+)*", detected_text)
-        ingredients = [i.strip().lower() for i in ingredients if len(i.strip()) > 1]
+
+        try:
+            json_str_match = re.search(r'\{.*\}', detected_text, re.DOTALL)
+            if not json_str_match:
+                raise Exception("No JSON object found in LLM output")
+            
+            detected_data_full = json.loads(json_str_match.group(0))
+            
+            dish_name = detected_data_full.get("dish_name", "Unknown Dish")
+            detected_ingredients_array = detected_data_full.get("ingredients", [])
+            
+            if not detected_ingredients_array:
+                raise Exception("No 'ingredients' array found in JSON")
+                
+        except Exception as e:
+            print(f"Error parsing LLM JSON output: {e}")
+            print(f"Raw output was: {detected_text}")
+            return {"error": "Failed to parse LLM output", "raw": detected_text}
+
+        ingredients_list = [item['ingredient'] for item in detected_ingredients_array]
+        weight_estimates = {item['ingredient'].lower(): item['weight_g'] for item in detected_ingredients_array}
         
-        print(f"Parsed ingredients: {ingredients}")
+        print(f"Parsed dish name: {dish_name}")
+        print(f"Parsed ingredients: {ingredients_list}")
+
 
         print("Matching ingredients with nutrition database...")
-        match_results = self.nutrition.find_for_list(ingredients)
-        filtered_results = {}
+        match_results = self.nutrition.find_for_list(ingredients_list)
+        base_nutrition_data = {}
         for ingr, matches in match_results.items():
             if matches:
-                filtered_results[ingr] = matches[0]  
+                base_nutrition_data[ingr] = matches[0]
             else:
-                filtered_results[ingr] = None
+                base_nutrition_data[ingr] = None
+        print(f"Found {len(base_nutrition_data)} base nutrition records.")
 
-        match_results = filtered_results
-        print(f"Found {len(match_results)} nutrition records.")
+        final_calculated_nutrition = {}
+        total_nutrition = {
+            'total_calories': 0,
+            'total_fat_g': 0,
+            'total_carb_g': 0,
+            'total_protein_g': 0,
+        }
 
-        print("Sending verification prompt to LLM...")
-        verify_prompt = self.prompts.load(
-            "verify_result",
-            ingredients=json.dumps(ingredients),
-            final_ingredients=json.dumps(match_results)
-        )
-        verify_text = self.llm.generate(verify_prompt)
-        
-        print(f"Verification result: {verify_text[:300].replace('\n', ' ')}")
+        for ingr, db_data in base_nutrition_data.items():
+            if db_data:
+                estimated_weight = weight_estimates.get(ingr.lower(), 0)
+                calculated_data = db_data.copy()
+                calculated_data['estimated_weight_g'] = estimated_weight
+                
+                cal = db_data['cal/g'] * estimated_weight
+                fat = db_data['fat(g)'] * estimated_weight
+                carb = db_data['carb(g)'] * estimated_weight
+                prot = db_data['protein(g)'] * estimated_weight
+                
+                calculated_data['total_calories'] = cal
+                calculated_data['total_fat_g'] = fat
+                calculated_data['total_carb_g'] = carb
+                calculated_data['total_protein_g'] = prot
+                
+                total_nutrition['total_calories'] += cal
+                total_nutrition['total_fat_g'] += fat
+                total_nutrition['total_carb_g'] += carb
+                total_nutrition['total_protein_g'] += prot
+                
+                final_calculated_nutrition[ingr] = calculated_data
 
         print(f"Analysis completed in {time.time() - start:.2f}s")
         
         return {
-            "detected": ingredients,
-            "verified": verify_text,
-            "nutrition": match_results
+            "dish_name": dish_name,
+            "detected_ingredients": detected_ingredients_array, 
+            "nutrition_per_ingredient": final_calculated_nutrition, 
+            "total_nutrition": total_nutrition, 
         }
