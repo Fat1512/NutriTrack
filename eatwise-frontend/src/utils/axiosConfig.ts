@@ -1,7 +1,11 @@
 import axios from "axios";
 
-import { BASE_URL } from "./Url";
+import { AI_URL, BASE_URL } from "./Url";
 import { getAccessToken } from "./helper";
+
+export const AI_REQUEST = axios.create({
+  baseURL: AI_URL,
+});
 
 export const API = axios.create({
   baseURL: BASE_URL,

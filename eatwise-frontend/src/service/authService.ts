@@ -26,6 +26,11 @@ export interface User {
   healthIssues: string[];
   specificDiet: string[];
   eatingHabits: string;
+  goal_protein: number;
+  goal_cal: number;
+  goal_carb: number;
+  goal_fat: number;
+  daily_goal_cal: number;
 }
 
 export interface TokenDTO {

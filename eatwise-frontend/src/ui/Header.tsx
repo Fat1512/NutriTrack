@@ -33,7 +33,7 @@ const Header = () => {
 
   return (
     <div className="flex p-4 justify-between border-b border-gray-200 bg-white mb-5">
-      <div>
+      <div className="cursor-pointer" onClick={() => navigate("/routine")}>
         <img className="h-20" src="/public/logo.png" />
       </div>
       <div className="flex items-center gap-3">

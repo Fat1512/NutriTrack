@@ -9,6 +9,10 @@ import TargetWeightStep from "./TargetWeightStep";
 import HealthIssuesStep from "./HealthIssuesStep";
 import DietStep from "./DietStep";
 import EatingHabitsStep from "./EatingHabitsStep";
+import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "../../context/AuthContext";
+import useUpdatePersonalization from "./useUpdatePersonalization";
 
 export interface UserPreferences {
   mainGoal: string;
@@ -34,11 +38,7 @@ const steps = [
   "Eating Habits",
 ];
 
-interface StepperComponentProps {
-  onComplete: (preferences: UserPreferences) => void;
-}
-
-const StepperComponent: React.FC<StepperComponentProps> = ({ onComplete }) => {
+const StepperComponent: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [preferences, setPreferences] = useState<UserPreferences>({
     mainGoal: "",
@@ -51,6 +51,28 @@ const StepperComponent: React.FC<StepperComponentProps> = ({ onComplete }) => {
     specificDiet: [],
     eatingHabits: "",
   });
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { updatePersonalizationAsync } = useUpdatePersonalization();
+
+  const handleOnboardingComplete = async (preferences: UserPreferences) => {
+    try {
+      const response = await updatePersonalizationAsync(preferences);
+
+      if (user) {
+        queryClient.setQueryData(["currentUser"], {
+          ...user,
+          ...response,
+          isOnboarded: true,
+        });
+      }
+
+      navigate("/", { replace: true });
+    } catch (error) {
+      navigate("/", { replace: true });
+    }
+  };
 
   const updatePreference = (key: keyof UserPreferences, value: any) => {
     setPreferences((prev) => ({
@@ -61,7 +83,7 @@ const StepperComponent: React.FC<StepperComponentProps> = ({ onComplete }) => {
 
   const handleNext = () => {
     if (activeStep === steps.length - 1) {
-      onComplete(preferences);
+      handleOnboardingComplete(preferences);
     } else {
       setActiveStep((prev) => prev + 1);
     }

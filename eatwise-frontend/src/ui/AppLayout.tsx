@@ -12,11 +12,10 @@ function AppLayout() {
 
       <main
         className={`w-full ${
-          expanded ? "pl-48" : "pl-12"
+          expanded ? "pl-72" : "pl-20"
         } transition-all duration-500 flex flex-col pb-20 pr-0 pt-0`}
       >
         <Header />
-
         <Outlet />
       </main>
     </div>
