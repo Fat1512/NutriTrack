@@ -50,6 +50,6 @@ public interface RoutineRepository extends MongoRepository<Routine, String> {
                     "consumeFat: { $sum: '$allMeals.totalFat' }, " +
                     "consumeCarb: { $sum: '$allMeals.totalCarb' } } }"
     })
-    NutrientAggregationResponse findWeeklyTotal(String userId, LocalDate startDate, LocalDate endDate);
+    Optional<NutrientAggregationResponse> findWeeklyTotal(String userId, LocalDate startDate, LocalDate endDate);
 
 }

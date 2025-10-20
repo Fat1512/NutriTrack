@@ -88,7 +88,7 @@ const MacroChart: React.FC<MarcroChartProps> = ({ goal, consumeNutrient }) => {
               <div key={macro.name} className="flex flex-col items-center">
                 <div className="w-25 h-25">
                   <CircularProgressbar
-                    value={animatedValues[index]}
+                    value={animatedValues[index] || 0}
                     maxValue={goal[macro.targetField]}
                     text={`${Math.round(animatedValues[index])}`}
                     styles={buildStyles({

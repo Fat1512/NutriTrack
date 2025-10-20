@@ -173,7 +173,8 @@ public class RoutineServiceImpl implements RoutineService {
         LocalDate endOfWeek = now.with(DayOfWeek.SUNDAY);
 
 
-        NutrientAggregationResponse mapList = routineRepository.findWeeklyTotal(userId, startOfWeek, endOfWeek);
+        NutrientAggregationResponse mapList = routineRepository.findWeeklyTotal(userId, startOfWeek, endOfWeek)
+                .orElse(new NutrientAggregationResponse());
 
         return mapList;
     }

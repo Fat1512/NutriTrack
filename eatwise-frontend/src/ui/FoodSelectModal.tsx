@@ -12,6 +12,7 @@ import useAddFoodToRoutine, {
   type MealKey,
 } from "../feature/routine/useAddFoodToRoutine";
 import { toast } from "react-toastify";
+import dayjs from "dayjs";
 
 const style = {
   position: "absolute" as const,
@@ -128,7 +129,8 @@ function FoodSelectModal({ meal }: FoodSelectModalProps) {
           name: i.name,
           weight: i.weight,
         })),
-        pickedDate: searchParams.get("pickedDate")!,
+        pickedDate:
+          searchParams.get("pickedDate") || dayjs().format("YYYY-MM-DD"),
       },
       {
         onSuccess: () => {
