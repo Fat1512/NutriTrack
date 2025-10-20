@@ -5,6 +5,7 @@ import SiderbarItem from "./SiderbarItem";
 import { AiOutlineSchedule } from "react-icons/ai";
 import { RiQrScanLine } from "react-icons/ri";
 import { useSidebarContext } from "../context/SidebarContext";
+import { TbLayoutDashboardFilled } from "react-icons/tb";
 
 const NAVIGATION_LIST = [
   {
@@ -16,6 +17,11 @@ const NAVIGATION_LIST = [
     icon: RiQrScanLine,
     label: "Scan Food",
     path: "/com",
+  },
+  {
+    icon: TbLayoutDashboardFilled,
+    label: "Dashboard",
+    path: "/dashboard",
   },
 ];
 

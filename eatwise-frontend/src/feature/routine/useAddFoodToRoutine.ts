@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addFoodToRoutine as addFoodToRoutineAPI } from "../../service/routineSerivce";
 import { useSearchParams } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 export type MealKey = "BREAKFAST" | "LUNCH" | "DINNER";
-interface resposne {
+export interface Resposne {
   status: string;
   data: object;
   message: string;
@@ -23,8 +24,10 @@ export interface FoodAddRoutine {
 export default function useAddFoodToRoutine() {
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
+  const pickedDate = searchParams.get("pickedDate");
   const { isPending, mutate: addFoodToRoutine } = useMutation<
-    resposne,
+    Resposne,
     Error,
     FoodAddRoutine
   >({
@@ -37,7 +40,16 @@ export default function useAddFoodToRoutine() {
       }),
     onSuccess: async () => {
       queryClient.invalidateQueries({
-        queryKey: ["pickedDate", searchParams.get("pickedDate")],
+        queryKey: ["pickedDate", pickedDate],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["calDaily", pickedDate],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["consumseNutrient", user?.id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["goal", user?.id],
       });
     },
   });

@@ -1,26 +1,39 @@
 package com.tpd.eatwise_server.service.impl;
 
+import com.mongodb.DuplicateKeyException;
 import com.tpd.eatwise_server.dto.request.RoutineAddFoodRequest;
 import com.tpd.eatwise_server.dto.response.MessageResponse;
+import com.tpd.eatwise_server.dto.response.NutrientAggregationResponse;
 import com.tpd.eatwise_server.dto.response.RoutineResponse;
 import com.tpd.eatwise_server.entity.Food;
 import com.tpd.eatwise_server.entity.Ingredient;
 import com.tpd.eatwise_server.entity.Routine;
+import com.tpd.eatwise_server.entity.User;
 import com.tpd.eatwise_server.exceptions.ResourceNotFoundExeption;
 import com.tpd.eatwise_server.mapper.FoodMapper;
 import com.tpd.eatwise_server.mapper.RoutineMapper;
 import com.tpd.eatwise_server.repository.FoodRepository;
 import com.tpd.eatwise_server.repository.IngredientRepository;
 import com.tpd.eatwise_server.repository.RoutineRepository;
+import com.tpd.eatwise_server.service.AuthService;
 import com.tpd.eatwise_server.service.RoutineService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +42,7 @@ public class RoutineServiceImpl implements RoutineService {
     private final FoodRepository foodRepository;
     private final FoodMapper foodMapper;
     private final IngredientRepository ingredientRepository;
+    private final AuthService authService;
     private final RoutineMapper routineMapper;
 
     @Override
@@ -38,7 +52,7 @@ public class RoutineServiceImpl implements RoutineService {
                 .orElseThrow(() -> new ResourceNotFoundExeption("Not found"));
         Food copyFood = foodMapper.copy(food);
         Routine routine = routineRepository.findRoutinePickedDate(userId, request.getPickedDate())
-                .orElse(new Routine());
+                .orElse(new Routine(userId, request.getPickedDate()));
 
         if (request.getIngredientExtra() != null && !request.getIngredientExtra().isEmpty()) {
             double totalCal = 0;
@@ -70,6 +84,59 @@ public class RoutineServiceImpl implements RoutineService {
     }
 
     @Override
+    public MessageResponse updateWaterConsume(String routineId, double water) {
+        Routine routine = routineRepository.findById(routineId)
+                .orElseThrow(() -> new ResourceNotFoundExeption("Not found routine"));
+        routine.setWaterConsumeDay(water);
+        routineRepository.save(routine);
+        return MessageResponse.builder()
+                .message("Successfully update water consume")
+                .status(HttpStatus.OK)
+                .build();
+    }
+
+    @Override
+    public MessageResponse getMarkDay(int month, int year) {
+        LocalDate startOfMonth = LocalDate.of(year, month, 1);
+        LocalDate endOfMonth = startOfMonth.plusMonths(1);
+
+        User user = authService.getCurrentUser();
+        List<LocalDate> dateList = routineRepository.findByUserIdAndMonth(user.getId(), startOfMonth, endOfMonth)
+                .stream()
+                .filter(Routine::checkActive)
+                .map(Routine::getPickedDate)
+                .sorted()
+                .toList();
+        return MessageResponse.builder()
+                .message("Successfully get marked day")
+                .status(HttpStatus.OK)
+                .data(dateList)
+                .build();
+    }
+
+    @Override
+    public List<NutrientAggregationResponse> staticsNutrient(int month, int year) {
+        LocalDate startOfMonth = LocalDate.of(year, month, 1);
+        LocalDate endOfMonth = startOfMonth.plusMonths(1);
+
+        User user = authService.getCurrentUser();
+
+        List<NutrientAggregationResponse> mapList = routineRepository.staticNutrient(user.getId(), startOfMonth, endOfMonth)
+                .stream()
+                .map(i -> NutrientAggregationResponse.builder()
+                        .date((String) i.get("_id"))
+                        .consumeCal((Double) i.get("totalCal"))
+                        .consumeFat((Double) i.get("totalFat"))
+                        .consumeProtein((Double) i.get("totalProtein"))
+                        .consumeCarb((Double) i.get("totalCarb"))
+                        .build()
+                )
+                .toList();
+
+        return mapList;
+    }
+
+    @Override
     @Transactional
     public RoutineResponse getByUserIdAndPickedDate(String userId, String pickedDate) {
         LocalDate date = LocalDate.parse(pickedDate, DateTimeFormatter.ISO_LOCAL_DATE);
@@ -78,9 +145,36 @@ public class RoutineServiceImpl implements RoutineService {
                 .findRoutinePickedDate(userId, date)
                 .orElseGet(() -> {
                     Routine newRoutine = new Routine(userId, date);
-                    return routineRepository.save(newRoutine);
+                    try {
+                        return routineRepository.save(newRoutine);
+                    } catch (DuplicateKeyException e) {
+                        return routineRepository.findRoutinePickedDate(userId, date)
+                                .orElseThrow();
+                    }
                 });
 
-        return routineMapper.convertToResponse(routine);
+        double consumeCal = 0;
+        for (var x : routine.getFoods().entrySet()) {
+            double cal = x.getValue().stream()
+                    .mapToDouble(f -> f.getTotalCal())
+                    .sum();
+            consumeCal += cal;
+        }
+        RoutineResponse response = routineMapper.convertToResponse(routine);
+        response.setConsumeCaloDaily(consumeCal);
+
+        return response;
+    }
+
+    @Override
+    public NutrientAggregationResponse aggNutrientConsume(String userId) {
+        LocalDate now = LocalDate.now(ZoneOffset.UTC);
+        LocalDate startOfWeek = now.with(DayOfWeek.MONDAY);
+        LocalDate endOfWeek = now.with(DayOfWeek.SUNDAY);
+
+
+        NutrientAggregationResponse mapList = routineRepository.findWeeklyTotal(userId, startOfWeek, endOfWeek);
+
+        return mapList;
     }
 }

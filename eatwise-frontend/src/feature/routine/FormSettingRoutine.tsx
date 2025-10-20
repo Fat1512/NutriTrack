@@ -4,6 +4,7 @@ import FormSettingRoutineRow from "./FormSettingRoutineRow";
 import type { MealKey } from "./useAddFoodToRoutine";
 import useGetRoutineByPickedDate from "./useGetRoutineByPickedDate";
 import LogModal from "../../ui/LogModal";
+import { useDailyContext } from "../../context/DailyContex";
 
 const MEALS: { key: MealKey; label: string; icon: string }[] = [
   { key: "BREAKFAST", label: "Breakfast", icon: "☕" },
@@ -12,7 +13,7 @@ const MEALS: { key: MealKey; label: string; icon: string }[] = [
 ];
 
 const FormSettingRoutine = () => {
-  const { isLoading, routine } = useGetRoutineByPickedDate();
+  const { isLoading, routine } = useDailyContext();
   const [selectedLog, setSelectLog] = useState<MealKey | null>(null);
   function handleOnClose() {
     setSelectLog(null);

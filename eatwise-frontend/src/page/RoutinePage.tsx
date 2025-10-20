@@ -3,6 +3,7 @@ import DatePicker from "../feature/routine/DatePicker";
 import FormSettingRoutine from "../feature/routine/FormSettingRoutine";
 import Goal from "../feature/routine/Goal";
 import MacroChart from "../feature/routine/MacroChart";
+import MacroChartWrapper from "../feature/routine/MacroChartWrapper";
 import WaterTracker from "../feature/routine/WaterTracker";
 
 const RoutinePage = () => {
@@ -23,7 +24,7 @@ const RoutinePage = () => {
         </div>
       </div>
       <div className="grid grid-cols-2 my-2 space-x-5">
-        <MacroChart />
+        <MacroChartWrapper />
         <Goal />
       </div>
     </div>
