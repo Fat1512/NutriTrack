@@ -44,7 +44,14 @@ class OpenAILLM(BaseLLM):
                 params["response_format"] = {"type": "json_object"}
 
             res = self.client.chat.completions.create(**params)
-            return res.choices[0].message.content.strip()
+            generated_text = res.choices[0].message.content.strip()
+            usage = res.usage
+            return {
+                "text": generated_text,
+                "prompt_tokens": usage.prompt_tokens,
+                "completion_tokens": usage.completion_tokens,
+                "total_tokens": usage.total_tokens
+            }
 
         except Exception as e:
             return f"[OpenAI Error] {e}"

@@ -2,11 +2,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from flask import Flask
-from app.routes import bp as vision_bp
+from app.routes import bp
 
 def create_app():
     app = Flask(__name__)
-    app.register_blueprint(vision_bp, url_prefix="/api")
+    app.register_blueprint(bp)
     return app
 
 if __name__ == "__main__":
