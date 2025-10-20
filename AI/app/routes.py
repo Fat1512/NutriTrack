@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 import os, tempfile
 from service.pipeline_service import FoodPipeline
 
-bp = Blueprint("llm", __name__, url_prefix="/api/llm")
+bp = Blueprint("ai-api", __name__, url_prefix="/api")
 
 pipeline = FoodPipeline()
 
@@ -23,5 +23,20 @@ def analyze_food():
             os.remove(p)
         except:
             pass
+
+    return jsonify(result)
+
+    
+@bp.route("/analyze-routine", methods=["POST"])
+def analyze_routine():
+    data = request.json
+    
+    routine_data = data.get("routine")
+    user_status = data.get("userStatus")
+
+    if not routine_data or not user_status:
+        return jsonify({"error": "Missing 'routine' or 'userStatus' in request body"}), 400
+
+    result = pipeline.analyze_routine(routine_data, user_status)
 
     return jsonify(result)

@@ -23,7 +23,13 @@ class FoodPipeline:
         detect_prompt = self.prompts.load("detect_ingredients")
         print("Sending detection prompt to LLM...")
         
-        detected_text = self.llm.generate(detect_prompt, images=image_paths)
+        llm_response = self.llm.generate(detect_prompt, images=image_paths)
+        detected_text = llm_response.get("text", "")
+        token_usage = {
+            "prompt_tokens": llm_response.get("prompt_tokens", 0),
+            "completion_tokens": llm_response.get("completion_tokens", 0),
+            "total_tokens": llm_response.get("total_tokens", 0)
+        }
         print(detected_text)
 
         try:
@@ -33,16 +39,33 @@ class FoodPipeline:
             
             detected_data_full = json.loads(json_str_match.group(0))
             
-            dish_name = detected_data_full.get("dish_name", "Unknown Dish")
+            if not detected_data_full.get("is_food"):
+                print("Analysis stopped: Image was determined not to be food.")
+                return {
+                    "dish_name": "Không phải đồ ăn",
+                    "detected_ingredients": [],
+                    "nutrition_per_ingredient": {},
+                    "total_nutrition": {},
+                    "token_usage": token_usage
+                }
+
+            dish_name = detected_data_full.get("dish_name", "Món ăn không rõ tên")
             detected_ingredients_array = detected_data_full.get("ingredients", [])
             
             if not detected_ingredients_array:
-                raise Exception("No 'ingredients' array found in JSON")
+                print("Warning: Image is food, but no ingredients were detected.")
+                return {
+                    "dish_name": dish_name,
+                    "detected_ingredients": [],
+                    "nutrition_per_ingredient": {},
+                    "total_nutrition": {},
+                    "token_usage": token_usage
+                }
                 
         except Exception as e:
             print(f"Error parsing LLM JSON output: {e}")
             print(f"Raw output was: {detected_text}")
-            return {"error": "Failed to parse LLM output", "raw": detected_text}
+            return {"error": "Failed to parse LLM output", "raw": detected_text, "token_usage": token_usage}
 
         ingredients_list = [item['ingredient'] for item in detected_ingredients_array]
         weight_estimates = {item['ingredient'].lower(): item['weight_g'] for item in detected_ingredients_array}
@@ -50,15 +73,16 @@ class FoodPipeline:
         print(f"Parsed dish name: {dish_name}")
         print(f"Parsed ingredients: {ingredients_list}")
 
-
         print("Matching ingredients with nutrition database...")
         match_results = self.nutrition.find_for_list(ingredients_list)
+        
         base_nutrition_data = {}
         for ingr, matches in match_results.items():
             if matches:
-                base_nutrition_data[ingr] = matches[0]
+                base_nutrition_data[ingr] = matches[0]  
             else:
                 base_nutrition_data[ingr] = None
+       
         print(f"Found {len(base_nutrition_data)} base nutrition records.")
 
         final_calculated_nutrition = {}
@@ -67,11 +91,13 @@ class FoodPipeline:
             'total_fat_g': 0,
             'total_carb_g': 0,
             'total_protein_g': 0,
+            'total_fiber_g': 0
         }
-
+       
         for ingr, db_data in base_nutrition_data.items():
             if db_data:
                 estimated_weight = weight_estimates.get(ingr.lower(), 0)
+                
                 calculated_data = db_data.copy()
                 calculated_data['estimated_weight_g'] = estimated_weight
                 
@@ -89,6 +115,11 @@ class FoodPipeline:
                 total_nutrition['total_fat_g'] += fat
                 total_nutrition['total_carb_g'] += carb
                 total_nutrition['total_protein_g'] += prot
+
+                if 'fiber(g)' in db_data: 
+                    fiber = db_data['fiber(g)'] * estimated_weight
+                    calculated_data['total_fiber_g'] = fiber
+                    total_nutrition['total_fiber_g'] += fiber
                 
                 final_calculated_nutrition[ingr] = calculated_data
 
@@ -96,7 +127,67 @@ class FoodPipeline:
         
         return {
             "dish_name": dish_name,
-            "detected_ingredients": detected_ingredients_array, 
-            "nutrition_per_ingredient": final_calculated_nutrition, 
-            "total_nutrition": total_nutrition, 
+            "detected_ingredients": detected_ingredients_array,
+            "nutrition_per_ingredient": final_calculated_nutrition,
+            "total_nutrition": total_nutrition,
+            "token_usage": token_usage
+        }
+
+    def analyze_routine(self, routine_data, user_status):
+        print("Starting routine analysis...")
+        start = time.time()
+        
+        total_token_usage = {
+            "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0
+        }
+
+        total_nutrition = {
+            'totalCal': 0, 'totalProtein': 0, 'totalFat': 0, 'totalCarb': 0
+        }
+        
+        if 'foods' not in routine_data or not isinstance(routine_data['foods'], dict):
+            return {"error": "Invalid routine format: 'foods' key is missing.", "token_usage": total_token_usage}
+
+        for meal_type, meal_list in routine_data['foods'].items():
+            if isinstance(meal_list, list):
+                for meal in meal_list:
+                    total_nutrition['totalCal'] += meal.get('totalCal', 0)
+                    total_nutrition['totalProtein'] += meal.get('totalProtein', 0)
+                    total_nutrition['totalFat'] += meal.get('totalFat', 0)
+                    total_nutrition['totalCarb'] += meal.get('totalCarb', 0)
+        
+        print(f"Calculated totals: {total_nutrition}")
+
+        try:
+            user_profile_str = json.dumps(user_status, indent=2, ensure_ascii=False)
+            daily_summary_str = json.dumps(total_nutrition, indent=2, ensure_ascii=False)
+
+            analysis_prompt = self.prompts.load(
+                "analyze_routine",
+                user_profile=user_profile_str,
+                daily_summary=daily_summary_str
+            )
+        except FileNotFoundError:
+            print("Error: analyze_routine.txt prompt file not found.")
+            return {"error": "Prompt file 'analyze_routine.txt' is missing.", "token_usage": total_token_usage}
+        except Exception as e:
+            print(f"Error loading prompt: {e}")
+            return {"error": "Failed to load analysis prompt.", "token_usage": total_token_usage}
+
+        print("Sending routine analysis prompt to LLM...")
+        
+        llm_response = self.llm.generate(analysis_prompt)
+        remark_text = llm_response.get("text", "")
+        total_token_usage = {
+            "prompt_tokens": llm_response.get("prompt_tokens", 0),
+            "completion_tokens": llm_response.get("completion_tokens", 0),
+            "total_tokens": llm_response.get("total_tokens", 0)
+        }
+        
+        print(f"Routine analysis completed in {time.time() - start:.2f}s")
+
+        return {
+            "daily_total": total_nutrition,
+            "analysis_remark": remark_text,
+            "token_usage": total_token_usage
         }
