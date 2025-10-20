@@ -33,39 +33,34 @@ const App = () => {
         <SidebarProvider>
           <GoalProvider>
             <BrowserRouter>
-              <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route
-                  path="/onboarding"
-                  element={
-                    <OnboardingRoute>
-                      <OnboardingPage />
-                    </OnboardingRoute>
-                  }
-                />
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <AppLayout />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route index element={<Navigate to="/routine" replace />} />
-                  <Route path="routine" element={<RoutinePage />} />
-                  <Route path="scanning" element={<ScanningPage />} />
+              <DailyProvider>
+                <Routes>
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
                   <Route
-                    path="/routine"
+                    path="/onboarding"
                     element={
-                      <DailyProvider>
-                        <RoutinePage />
-                      </DailyProvider>
+                      <OnboardingRoute>
+                        <OnboardingPage />
+                      </OnboardingRoute>
                     }
                   />
-                  <Route path="/dashboard" element={<NutrientChart />} />
-                </Route>
-              </Routes>
+                  <Route
+                    path="/"
+                    element={
+                      <ProtectedRoute>
+                        <AppLayout />
+                      </ProtectedRoute>
+                    }
+                  >
+                    <Route index element={<Navigate to="/routine" replace />} />
+                    <Route path="routine" element={<RoutinePage />} />
+                    <Route path="scanning" element={<ScanningPage />} />
+                    <Route path="/routine" element={<RoutinePage />} />
+                    <Route path="/dashboard" element={<NutrientChart />} />
+                  </Route>
+                </Routes>
+              </DailyProvider>
             </BrowserRouter>
           </GoalProvider>
         </SidebarProvider>
