@@ -23,4 +23,5 @@ public class RoutineResponse {
     private LocalDateTime createdAt;
     private Map<Meal, List<Food>> foods;
     private double waterConsumeDay;
+    private double consumeCaloDaily;
 }

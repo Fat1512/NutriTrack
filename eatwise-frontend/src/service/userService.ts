@@ -1,3 +1,4 @@
+import type { Goal } from "../context/GoalContext";
 import type { UserPreferences } from "../feature/onboarding/StepperComponentModern";
 import { AUTH_REQUEST } from "../utils/axiosConfig";
 
@@ -24,6 +25,28 @@ class UserService {
       return response.data.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || "Update failed");
+    }
+  }
+  async updateUserGoal(data: Goal): Promise<any> {
+    try {
+      const response = await AUTH_REQUEST.put(`/users/goal`, data);
+      return response.data.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "Update user goal failed"
+      );
+    }
+  }
+
+  async getGoalUser() {
+    try {
+      const response = await AUTH_REQUEST.get(`/users/goal`);
+
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.message || "Failed to get user goal"
+      );
     }
   }
 

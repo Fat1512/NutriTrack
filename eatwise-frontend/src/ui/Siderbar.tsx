@@ -1,17 +1,9 @@
 import SiderbarItem from "./SiderbarItem";
 
 import { AiOutlineSchedule } from "react-icons/ai";
-import {
-  MdDashboard,
-  MdCalendarToday,
-  MdMessage,
-  MdRestaurantMenu,
-  MdFitnessCenter,
-  MdInsights,
-} from "react-icons/md";
 import { IoMdJournal } from "react-icons/io";
-import { TrendingUp } from "@mui/icons-material";
 import { useSidebarContext } from "../context/SidebarContext";
+import { TbLayoutDashboardFilled } from "react-icons/tb";
 
 const NAVIGATION_LIST = [
   {
@@ -24,6 +16,11 @@ const NAVIGATION_LIST = [
     label: "Nutrition Detection",
     path: "/scanning",
     active: true,
+  },
+  {
+    icon: TbLayoutDashboardFilled,
+    label: "Dashboard",
+    path: "/dashboard",
   },
 ];
 

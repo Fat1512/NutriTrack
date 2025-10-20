@@ -2,8 +2,8 @@ import os, json, base64, requests
 from ..base_llm import BaseLLM
 
 class OllamaLLM(BaseLLM):
-    def __init__(self, model):
-        self.model = model or os.getenv("OLLAMA_MODEL")
+    def __init__(self):
+        self.model = os.getenv("OLLAMA_MODEL")
         self.host = os.getenv("OLLAMA_HOST")
 
     def _encode(self, path):
@@ -22,4 +22,26 @@ class OllamaLLM(BaseLLM):
             return f"[Ollama Error] {e}"
 
     def generate(self, prompt, images=None):
-        return self._query(prompt, images)
+        response = self._query(prompt, images)
+        print(response)
+
+        if isinstance(response, str):
+            return {
+                "text": response,
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0
+            }
+        
+        generated_text = response.get("response", "").strip()
+
+        prompt_tokens = response.get("prompt_eval_count", 0)
+        completion_tokens = response.get("eval_count", 0)
+        total_tokens = prompt_tokens + completion_tokens
+
+        return {
+            "text": generated_text,
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": total_tokens
+        }
