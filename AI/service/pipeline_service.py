@@ -1,7 +1,7 @@
 import time
 import json
-from .prompt_manager import PromptManager
-from model.factory import get_llm
+from components.manager import PromptManager
+from components.manager import GenerationManager
 from .nutrition_service import NutritionService
 import re
 
@@ -10,7 +10,7 @@ class FoodPipeline:
         start = time.time()
         print("Initializing FoodPipeline...")
         
-        self.llm = get_llm()
+        self.llm = GenerationManager()
         self.prompts = PromptManager()
         self.nutrition = NutritionService()
         

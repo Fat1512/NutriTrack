@@ -1,28 +1,27 @@
 import pandas as pd
-from .embedding_service import EmbeddingService
-import chromadb
+from components.manager import EmbeddingManager, DatabaseManager
 
 class NutritionService:
     def __init__(self, csv_path="data/ingredients_metadata.csv"):
         self.df = pd.read_csv(csv_path)
-        self.embedder = EmbeddingService()
-        self.chroma_client = chromadb.Client() 
-        self.collection = self.chroma_client.get_or_create_collection(name="nutrition_ingredients")
+        self.embedder = EmbeddingManager()
         
-        if self.collection.count() == 0:
+        self.db = DatabaseManager()
+        self.collection_name = "nutrition_ingredients"
+
+        if self.db.count(self.collection_name) == 0:
             print("Indexing data to Chroma DB...")
             self._prepare_data()
             print("Chroma DB indexing complete.")
 
     def _prepare_data(self):
         ids = [str(i) for i in self.df['id'].tolist()]
-        documents = self.df['ingr'].tolist() 
-        
-        embeddings = self.embedder.get_embeddings(documents)
-        
+        documents = self.df['ingr'].tolist()
+        embeddings = self.embedder.vectorize(documents)
         metadatas = self.df.drop(columns=['ingr']).to_dict('records')
 
-        self.collection.add(
+        self.db.add(
+            collection_name=self.collection_name,
             embeddings=embeddings,
             documents=documents,
             metadatas=metadatas,
@@ -30,9 +29,10 @@ class NutritionService:
         )
         
     def find_similar(self, ingredient, limit=3):
-        query_vector = self.embedder.get_embedding(ingredient)
+        query_vector = self.embedder.vectorize_single(ingredient)
 
-        results = self.collection.query(
+        results = self.db.query(
+            collection_name=self.collection_name,
             query_embeddings=[query_vector],
             n_results=limit
         )

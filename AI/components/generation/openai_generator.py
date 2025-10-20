@@ -2,10 +2,10 @@ import os
 import json
 import base64
 from openai import OpenAI
-from ..base_llm import BaseLLM
+from components.interfaces import Generator
 
 
-class OpenAILLM(BaseLLM):
+class OpenAIGenerator(Generator):
     def __init__(self):
         self.model = os.getenv("OPENAI_MODEL")
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
