@@ -1,43 +1,89 @@
-import { ImEmbed } from "react-icons/im";
-
 import SiderbarItem from "./SiderbarItem";
 
 import { AiOutlineSchedule } from "react-icons/ai";
-import { RiQrScanLine } from "react-icons/ri";
+import { IoMdJournal } from "react-icons/io";
 import { useSidebarContext } from "../context/SidebarContext";
+import { TbLayoutDashboardFilled } from "react-icons/tb";
+import { useDailyContext } from "../context/DailyContex";
+import { useGoalContext } from "../context/GoalContext";
 
 const NAVIGATION_LIST = [
   {
     icon: AiOutlineSchedule,
     label: "Meal Plan",
-    path: "/wms",
+    path: "/routine",
   },
   {
-    icon: RiQrScanLine,
-    label: "Scan Food",
-    path: "/com",
+    icon: IoMdJournal,
+    label: "Nutrition Detection",
+    path: "/scanning",
+    active: true,
+  },
+  {
+    icon: TbLayoutDashboardFilled,
+    label: "Dashboard",
+    path: "/dashboard",
   },
 ];
 
 function Sidebar() {
   const { expanded, setExpanded } = useSidebarContext();
+  const { routine } = useDailyContext();
+  const { goal } = useGoalContext();
   return (
     <div
       className={`fixed ${
-        expanded ? "w-48" : "w-12"
-      } top-0 left-0 h-screen bg-[#043915] text-white z-50 transition-all ease-in-out duration-500`}
+        expanded ? "w-70" : "w-18"
+      } top-0 left-0 h-screen bg-gradient-to-b from-white to-gray-50 shadow-xl  transition-all ease-in-out duration-300`}
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
     >
+      <div className="p-6 border-b border-gray-100">
+        <div className="flex items-center space-x-4">
+          {expanded && (
+            <h2 className="text-xl font-bold text-gray-800 transition-all duration-300">
+              NutriTrack
+            </h2>
+          )}
+        </div>
+      </div>
+
+      <nav className="mt-6 px-3">
+        <div className="space-y-1">
+          {NAVIGATION_LIST.map(({ icon, label, path }) => (
+            <SiderbarItem key={label} icon={icon} label={label} path={path} />
+          ))}
+        </div>
+      </nav>
+
       {expanded && (
-        <div className="text-2xl">
-          <p className="p-3">EatWise</p>
+        <div className="absolute bottom-6 left-3 right-3">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-100">
+            <div className="text-sm font-medium text-gray-700 mb-2">
+              Daily Progress
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-600">Calories</span>
+                <span className="font-medium text-gray-800">
+                  {Math.round(routine.consumeCaloDaily)} / {goal.dailyGoalCal}
+                </span>
+              </div>
+              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-700 ease-out"
+                  style={{
+                    width: `${Math.min(
+                      (routine.consumeCaloDaily / goal.dailyGoalCal) * 100,
+                      100
+                    )}%`,
+                  }}
+                ></div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
-
-      {NAVIGATION_LIST.map(({ icon, label, path }) => (
-        <SiderbarItem key={label} icon={icon} label={label} path={path} />
-      ))}
     </div>
   );
 }

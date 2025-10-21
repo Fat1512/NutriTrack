@@ -1,6 +1,7 @@
 package com.tpd.eatwise_server.dto.response;
 
 import com.tpd.eatwise_server.entity.Food;
+import com.tpd.eatwise_server.entity.Ingredient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,9 +17,13 @@ import java.util.List;
 @Builder
 public class FoodOverviewResponse {
     private String id;
+    private String name;
     private String image;
+
     private double totalCal;
     private double totalProtein;
     private double totalFat;
     private double totalCarb;
+
+
 }
