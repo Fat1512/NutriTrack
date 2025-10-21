@@ -20,6 +20,7 @@ from service.mini_rag_service import MiniRagService
 from components.watcher.local_watcher import LocalFolderWatcher
 from components.watcher.rss_watcher import RSSWatcher
 
+
 async def start_watchers(loop):
     print("Initializing Watchers...")
     
