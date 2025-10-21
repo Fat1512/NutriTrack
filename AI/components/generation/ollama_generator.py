@@ -1,7 +1,8 @@
 import os, json, base64, requests
-from ..base_llm import BaseLLM
+from components.interfaces import Generator
 
-class OllamaLLM(BaseLLM):
+
+class OllamaGenerator(Generator):
     def __init__(self):
         self.model = os.getenv("OLLAMA_MODEL")
         self.host = os.getenv("OLLAMA_HOST")
@@ -17,8 +18,9 @@ class OllamaLLM(BaseLLM):
         try:
             res = requests.post(f"{self.host}/api/generate", json=payload, timeout=120)
             res.raise_for_status()
-            return res.json().get("response", "").strip()
+            return res.json() 
         except Exception as e:
+            print(f"[Ollama Error] {e}")
             return f"[Ollama Error] {e}"
 
     def generate(self, prompt, images=None):
