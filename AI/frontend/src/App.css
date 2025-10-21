@@ -1,0 +1,209 @@
+:root {
+  --background-color: #f4f7f6;
+  --container-color: #ffffff;
+  --text-color: #333;
+  --primary-color: #007bff;
+  --border-color: #e0e0e0;
+  --user-msg-bg: #007bff;
+  --bot-msg-bg: #f0f0f0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  background-color: var(--container-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+}
+
+h1 {
+  text-align: center;
+  margin-top: 0;
+  color: var(--primary-color);
+}
+
+h2 {
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 8px;
+}
+
+.section {
+  /* Xóa 'margin-bottom: 32px;' từ section
+     để .tab-content kiểm soát khoảng cách */
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+input[type='file'] {
+  border: 1px solid var(--border-color);
+  padding: 8px;
+  border-radius: 4px;
+}
+
+button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+button:disabled {
+  background-color: #c0c0c0;
+  cursor: not-allowed;
+}
+
+.status-text {
+  font-style: italic;
+  color: #555;
+  margin: 0;
+}
+
+.doc-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.doc-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+  font-size: 14px;
+  padding: 5px 10px;
+}
+.delete-btn:hover {
+  background-color: #c82333;
+}
+
+/* Chat Window */
+.chat-window {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+}
+
+.chat-messages {
+  flex-grow: 1;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.message {
+  padding: 10px 14px;
+  border-radius: 18px;
+  max-width: 80%;
+}
+
+.message p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.message.user {
+  background-color: var(--user-msg-bg);
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+.message.bot {
+  background-color: var(--bot-msg-bg);
+  color: var(--text-color);
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+.token-count {
+  font-size: 0.75rem;
+  color: #888;
+  display: block;
+  margin-top: 5px;
+  text-align: right;
+}
+
+.message.bot .token-count {
+  color: #777;
+}
+
+.chat-input-form {
+  display: flex;
+  border-top: 1px solid var(--border-color);
+  padding: 12px;
+}
+
+.chat-input-form input {
+  flex-grow: 1;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 16px;
+  margin-right: 8px;
+}
+
+/* --- STYLES MỚI CHO TAB --- */
+
+.tabs {
+  display: flex;
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 24px;
+}
+
+.tab-btn {
+  padding: 12px 18px;
+  cursor: pointer;
+  background-color: transparent;
+  color: #555;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: -2px; /* Dính vào border-bottom của .tabs */
+}
+
+.tab-btn.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+}
+
+.tab-btn:hover:not(.active) {
+  background-color: #f9f9f9;
+}
+
+.tab-content {
+  /* Nội dung của tab (section) sẽ được hiển thị ở đây */
+}
