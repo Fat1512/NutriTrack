@@ -1,8 +1,8 @@
+import AskAIWrapper from "../feature/routine/AskAIWrapper";
 import CaloryChart from "../feature/routine/CaloryChart";
 import DatePicker from "../feature/routine/DatePicker";
 import FormSettingRoutine from "../feature/routine/FormSettingRoutine";
 import Goal from "../feature/routine/Goal";
-import MacroChart from "../feature/routine/MacroChart";
 import MacroChartWrapper from "../feature/routine/MacroChartWrapper";
 import WaterTracker from "../feature/routine/WaterTracker";
 
@@ -27,6 +27,7 @@ const RoutinePage = () => {
         <MacroChartWrapper />
         <Goal />
       </div>
+      <AskAIWrapper />
     </div>
   );
 };

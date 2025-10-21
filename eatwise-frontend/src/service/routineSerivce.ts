@@ -63,6 +63,18 @@ export async function getMarkedDay(month: number, year: number) {
     );
   }
 }
+export async function analyzeRoutine(pickedDate: string) {
+  try {
+    const res = await AUTH_REQUEST.get("/routine/analyze-routine", {
+      params: { pickedDate },
+    });
+    return res.data.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.detail || error.message || "Unknown error"
+    );
+  }
+}
 export async function getStaticNutrient(month: number, year: number) {
   try {
     const res = await AUTH_REQUEST.get("/routine/statics", {

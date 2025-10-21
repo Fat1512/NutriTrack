@@ -4,6 +4,8 @@ import { AiOutlineSchedule } from "react-icons/ai";
 import { IoMdJournal } from "react-icons/io";
 import { useSidebarContext } from "../context/SidebarContext";
 import { TbLayoutDashboardFilled } from "react-icons/tb";
+import { useDailyContext } from "../context/DailyContex";
+import { useGoalContext } from "../context/GoalContext";
 
 const NAVIGATION_LIST = [
   {
@@ -26,6 +28,8 @@ const NAVIGATION_LIST = [
 
 function Sidebar() {
   const { expanded, setExpanded } = useSidebarContext();
+  const { routine } = useDailyContext();
+  const { goal } = useGoalContext();
   return (
     <div
       className={`fixed ${
@@ -34,7 +38,6 @@ function Sidebar() {
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
     >
-      {/* Brand Header */}
       <div className="p-6 border-b border-gray-100">
         <div className="flex items-center space-x-4">
           {expanded && (
@@ -45,7 +48,6 @@ function Sidebar() {
         </div>
       </div>
 
-      {/* Navigation Items */}
       <nav className="mt-6 px-3">
         <div className="space-y-1">
           {NAVIGATION_LIST.map(({ icon, label, path }) => (
@@ -54,7 +56,6 @@ function Sidebar() {
         </div>
       </nav>
 
-      {/* Bottom Section - Daily Progress */}
       {expanded && (
         <div className="absolute bottom-6 left-3 right-3">
           <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-100">
@@ -64,10 +65,20 @@ function Sidebar() {
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-600">Calories</span>
-                <span className="font-medium text-gray-800">1,200 / 2,000</span>
+                <span className="font-medium text-gray-800">
+                  {Math.round(routine.consumeCaloDaily)} / {goal.dailyGoalCal}
+                </span>
               </div>
               <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div className="w-3/5 h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-500"></div>
+                <div
+                  className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-700 ease-out"
+                  style={{
+                    width: `${Math.min(
+                      (routine.consumeCaloDaily / goal.dailyGoalCal) * 100,
+                      100
+                    )}%`,
+                  }}
+                ></div>
               </div>
             </div>
           </div>

@@ -113,9 +113,7 @@ const NutritionResults: React.FC<NutritionResultsProps> = ({
                             <div className="font-semibold">
                               {nutrition.title}
                             </div>
-                            <div className="text-sm text-gray-500">
-                              /{nutrition.target}g
-                            </div>
+                            <div className="text-sm text-gray-500"></div>
                           </div>
                         </div>
                       </>
