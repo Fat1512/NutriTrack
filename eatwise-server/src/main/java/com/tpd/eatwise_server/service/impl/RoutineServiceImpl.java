@@ -2,6 +2,7 @@ package com.tpd.eatwise_server.service.impl;
 
 import com.mongodb.DuplicateKeyException;
 import com.tpd.eatwise_server.dto.request.RoutineAddFoodRequest;
+import com.tpd.eatwise_server.dto.request.UserStatusRequest;
 import com.tpd.eatwise_server.dto.response.MessageResponse;
 import com.tpd.eatwise_server.dto.response.NutrientAggregationResponse;
 import com.tpd.eatwise_server.dto.response.RoutineResponse;
@@ -12,18 +13,22 @@ import com.tpd.eatwise_server.entity.User;
 import com.tpd.eatwise_server.exceptions.ResourceNotFoundExeption;
 import com.tpd.eatwise_server.mapper.FoodMapper;
 import com.tpd.eatwise_server.mapper.RoutineMapper;
+import com.tpd.eatwise_server.mapper.UserMapper;
 import com.tpd.eatwise_server.repository.FoodRepository;
 import com.tpd.eatwise_server.repository.IngredientRepository;
 import com.tpd.eatwise_server.repository.RoutineRepository;
 import com.tpd.eatwise_server.service.AuthService;
 import com.tpd.eatwise_server.service.RoutineService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -44,6 +49,10 @@ public class RoutineServiceImpl implements RoutineService {
     private final IngredientRepository ingredientRepository;
     private final AuthService authService;
     private final RoutineMapper routineMapper;
+    private final UserMapper userMapper;
+    private final RestTemplate restTemplate;
+    @Value(value = "${app.ai-server}")
+    private String AI_SERVER_URL;
 
     @Override
     @Transactional
@@ -81,6 +90,40 @@ public class RoutineServiceImpl implements RoutineService {
                 .message("Successfully add food to routine")
                 .status(HttpStatus.OK)
                 .build();
+    }
+
+    @Override
+    public MessageResponse analyzeRoutine(String pickedDate) {
+        User user = authService.getCurrentUser();
+        LocalDate date = LocalDate.parse(pickedDate, DateTimeFormatter.ISO_LOCAL_DATE);
+
+        Routine routine = routineRepository.findRoutinePickedDate(user.getId(), date)
+                .orElse(new Routine(user.getId(), date));
+
+        UserStatusRequest statusRequest = userMapper.convertToUserRequest(user);
+
+        String flaskUrl = AI_SERVER_URL + "/analyze-routine";
+
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("userStatus", statusRequest);
+        requestBody.put("routine", routine);
+
+        try {
+            ResponseEntity<Map> response = restTemplate.postForEntity(flaskUrl, requestBody, Map.class);
+            Map<String, Object> flaskResult = response.getBody();
+
+            return MessageResponse.builder()
+                    .status(HttpStatus.OK)
+                    .message("Successfully analyze routine")
+                    .data(flaskResult)
+                    .build();
+        } catch (Exception e) {
+            return MessageResponse.builder()
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .message("Failed to call Flask API: " + e.getMessage())
+                    .build();
+        }
     }
 
     @Override

@@ -1,8 +1,8 @@
 import sys
 import pandas as pd
 from .embedding_service import EmbeddingService
-import pysqlite3
-sys.modules["sqlite3"] = pysqlite3
+import sqlite3
+sys.modules["sqlite3"] = sqlite3
 import chromadb
 
 class NutritionService:

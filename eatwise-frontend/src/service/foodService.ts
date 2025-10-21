@@ -33,7 +33,7 @@ export async function getFood(id: string) {
 
 export async function detectNutrition(data: FormData) {
   try {
-    const res = await AI_REQUEST.post("/llm/analyze", data, {
+    const res = await AI_REQUEST.post("/analyze", data, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

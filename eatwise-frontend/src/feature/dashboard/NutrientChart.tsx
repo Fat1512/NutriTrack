@@ -53,7 +53,6 @@ export default function NutrientChart() {
     return { xAxis, protein, carb, fat, cal };
   }, [data, selectedMonth, selectedYear]);
 
-  // ✅ Tính giá trị trung bình cho Pie Chart (cả Calory)
   const pieData = useMemo(() => {
     if (!chartData) return [];
     const days = chartData.xAxis.length || 1;
@@ -94,7 +93,6 @@ export default function NutrientChart() {
 
   return (
     <div className="w-full space-y-6 p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl">
-      {/* Header */}
       <div className="flex justify-between items-center bg-white rounded-2xl p-5 shadow-md">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">
@@ -104,7 +102,6 @@ export default function NutrientChart() {
         </div>
 
         <div className="flex gap-3">
-          {/* Month Select */}
           <FormControl size="small" sx={{ minWidth: 140 }}>
             <InputLabel id="month-select-label">Month</InputLabel>
             <Select
@@ -121,7 +118,6 @@ export default function NutrientChart() {
             </Select>
           </FormControl>
 
-          {/* Year Select */}
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel id="year-select-label">Year</InputLabel>
             <Select
@@ -143,9 +139,7 @@ export default function NutrientChart() {
         </div>
       </div>
 
-      {/* Charts */}
       <div className="grid grid-cols-8 gap-6">
-        {/* Line Chart - 5 phần */}
         <div className="bg-white col-span-5 rounded-2xl shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">
             Nutrient Intake Trend
@@ -192,7 +186,6 @@ export default function NutrientChart() {
           )}
         </div>
 
-        {/* Pie Chart - 3 phần */}
         <div className="bg-white col-span-3 rounded-2xl shadow-md p-6 flex flex-col justify-center">
           <h3 className="text-lg font-semibold text-gray-700 mb-4 text-center">
             Monthly Nutrient Average
@@ -211,7 +204,6 @@ export default function NutrientChart() {
                   paddingAngle: 2,
                   cx: 150,
                   cy: 150,
-                  // ✅ hiển thị label trực tiếp trong chart
                   label: ({ dataEntry }) => dataEntry.label,
                 },
               ]}

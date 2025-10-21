@@ -43,6 +43,14 @@ public class RoutineController {
         return new ResponseEntity<>(messageResponse, HttpStatus.CREATED);
     }
 
+    @GetMapping("/routine/analyze-routine")
+    public ResponseEntity<MessageResponse> analyzeRoutine(
+            @RequestParam("pickedDate") String pickedDate) {
+
+        MessageResponse messageResponse = routineService.analyzeRoutine(pickedDate);
+        return ResponseEntity.ok(messageResponse);
+    }
+
     @GetMapping("/routine/pickedDate")
     public ResponseEntity<RoutineResponse> getRoutineByPickedDate(
             @RequestParam("pickedDate") String pickedDate) {

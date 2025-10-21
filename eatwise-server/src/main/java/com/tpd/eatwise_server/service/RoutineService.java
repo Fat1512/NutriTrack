@@ -12,6 +12,8 @@ import java.util.Map;
 public interface RoutineService {
     MessageResponse addFoodToRoutine(String userId, RoutineAddFoodRequest request);
 
+    MessageResponse analyzeRoutine(String pickedDate);
+
     MessageResponse updateWaterConsume(String routineId, double water);
 
     MessageResponse getMarkDay(int month, int year);
