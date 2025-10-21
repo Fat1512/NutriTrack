@@ -1,0 +1,8 @@
+Bạn là một bộ phân loại ý định (intent classifier). Chỉ trả lời bằng MỘT trong các từ sau: GREETING, META_QUERY, hoặc RAG_QUERY.
+
+- GREETING: Nếu người dùng đang chào (ví dụ: hello, hi, chào bạn, ê, chào buổi tối).
+- META_QUERY: Nếu người dùng hỏi về bạn (ví dụ: bạn là ai, bạn làm được gì, mục đích của ứng dụng).
+- RAG_QUERY: MẶC ĐỊNH. Nếu là một câu hỏi thông thường, tìm kiếm thông tin, hoặc bất cứ thứ gì khác (ví dụ: gừng có tác dụng gì? phân tích file này).
+
+Câu hỏi người dùng: "{query}"
+Phân loại:

@@ -93,32 +93,72 @@ def rag_chat():
     if not query:
         return jsonify({"error": "Missing 'query'"}), 400
     
-    context_chunks = rag_service.retrieve_context(query, n_results=3)
-    
-    if not context_chunks:
-        return jsonify({"answer": "I couldn't find this information in the documents.", "token_usage": {}})
-
-    context_str = "\n\n---\n\n".join(context_chunks)
     
     try:
-        chat_prompt = rag_prompts.load(
-            "rag_chat",
-            context=context_str,
-            query=query
-        )
+        router_prompt_str = rag_prompts.load("router_prompt", query=query)
     except Exception as e:
-        return jsonify({"error": f"Could not load rag_chat prompt: {e}"}), 500
+        return jsonify({"error": f"Could not load router_prompt: {e}"}), 500
 
-    response = rag_llm.generate(chat_prompt)
-    
-    return jsonify({
-        "answer": response.get("text", "Error generating response."),
-        "token_usage": {
-            "prompt_tokens": response.get("prompt_tokens", 0),
-            "completion_tokens": response.get("completion_tokens", 0),
-            "total_tokens": response.get("total_tokens", 0)
-        }
+    router_response = rag_llm.generate(router_prompt_str)
+    intent = router_response.get("text", "RAG_QUERY").strip().upper()
+
+    router_tokens = router_response.get("token_usage", {
+        "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0
     })
+
+    
+    if "GREETING" in intent:
+        try:
+            greeting_prompt = rag_prompts.load("greeting_response", query=query)
+            response = rag_llm.generate(greeting_prompt)
+            
+            return jsonify({
+                "answer": response.get("text", "Xin chào! Tôi có thể giúp gì cho bạn?"),
+                "token_usage": response.get("token_usage", {})
+            })
+        except Exception as e:
+            return jsonify({"error": f"Could not load greeting_response prompt: {e}"}), 500
+
+    elif "META_QUERY" in intent:
+        try:
+            meta_prompt_template = rag_prompts.load("meta_info")
+            final_prompt = f"{meta_prompt_template}\n\nCâu hỏi của người dùng: {query}\nCâu trả lời của bạn:"
+            response = rag_llm.generate(final_prompt)
+            
+            return jsonify({
+                "answer": response.get("text", "Tôi là một trợ lý AI."),
+                "token_usage": response.get("token_usage", {})
+            })
+        except Exception as e:
+            return jsonify({"error": f"Could not load meta_info prompt: {e}"}), 500
+
+    else:
+        print(f"Executing RAG query for: {query}")
+        context_chunks = rag_service.retrieve_context(query, n_results=3)
+        
+        if not context_chunks:
+            return jsonify({
+                "answer": "Tôi không tìm thấy thông tin này trong tài liệu. Bạn vui lòng nói rõ câu hỏi hơn được không?", 
+                "token_usage": router_tokens
+            })
+
+        context_str = "\n\n---\n\n".join(context_chunks)
+        
+        try:
+            chat_prompt = rag_prompts.load(
+                "rag_chat",
+                context=context_str,
+                query=query
+            )
+        except Exception as e:
+            return jsonify({"error": f"Could not load rag_chat prompt: {e}"}), 500
+
+        response = rag_llm.generate(chat_prompt)
+        
+        return jsonify({
+            "answer": response.get("text", "Error generating response."),
+            "token_usage": response.get("token_usage", {})
+        })
 
 
 @bp.route("/rag/documents", methods=["GET"])
