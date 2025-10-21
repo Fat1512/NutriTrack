@@ -1,3 +1,4 @@
+
 from components.interfaces import BaseIngestStrategy
 
 class HTMLIngestStrategy(BaseIngestStrategy):

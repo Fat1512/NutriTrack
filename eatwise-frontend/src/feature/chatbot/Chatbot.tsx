@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
+import { FaPaperPlane, FaSpinner } from "react-icons/fa";
 import useChatAI from "./useChatAI";
-
+import ReactMarkdown from "react-markdown";
 type Message = {
   role: "user" | "bot";
   text: string;
@@ -34,8 +35,8 @@ export default function Chatbot() {
     chatWithAI(
       { query: text },
       {
-        onSuccess: ({ data }) => {
-          setMessages((prev) => [...prev, { role: "bot", text: data.answer }]);
+        onSuccess: ({ answer }) => {
+          setMessages((prev) => [...prev, { role: "bot", text: answer }]);
         },
       }
     );
@@ -47,24 +48,44 @@ export default function Chatbot() {
         ref={containerRef}
         className="flex-1 overflow-y-auto px-6 py-4 space-y-4 animate-fade-in"
       >
-        {messages.map((m, index) => (
-          <div
-            key={index}
-            className={`flex ${
-              m.role === "user" ? "justify-end" : "justify-start"
-            }`}
-          >
+        <div className="flex flex-col gap-3 p-4">
+          {messages.map((m, index) => (
             <div
-              className={`max-w-[70%] rounded-2xl px-4 py-2 shadow-sm animate-slide-up ${
-                m.role === "user"
-                  ? "bg-indigo-600 text-white"
-                  : "bg-gray-100 text-gray-800"
+              key={index}
+              className={`flex ${
+                m.role === "user" ? "justify-end" : "justify-start"
               }`}
             >
-              {m.text}
+              <div
+                className={`max-w-[70%] rounded-2xl px-4 py-2 shadow-sm whitespace-pre-wrap animate-slide-up ${
+                  m.role === "user"
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-100 text-gray-800"
+                }`}
+              >
+                <ReactMarkdown
+                  components={{
+                    p: ({ children }) => (
+                      <p className="mb-1 last:mb-0">{children}</p>
+                    ),
+                    ul: ({ children }) => (
+                      <ul className="list-disc ml-5">{children}</ul>
+                    ),
+                    ol: ({ children }) => (
+                      <ol className="list-decimal ml-5">{children}</ol>
+                    ),
+                    li: ({ children }) => <li className="mb-1">{children}</li>,
+                    strong: ({ children }) => (
+                      <strong className="font-semibold">{children}</strong>
+                    ),
+                  }}
+                >
+                  {m.text}
+                </ReactMarkdown>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
         {isPending && <TypingDots />}
       </main>
 
@@ -84,9 +105,26 @@ export default function Chatbot() {
           />
           <button
             type="submit"
-            className="rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700 transition-transform hover:scale-105"
+            disabled={isPending}
+            className={`flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold text-white shadow-md transition-all duration-200 
+        ${
+          isPending
+            ? "bg-indigo-400 cursor-not-allowed"
+            : "bg-indigo-600 hover:bg-indigo-700 active:scale-95"
+        }
+      `}
           >
-            Gửi
+            {isPending ? (
+              <>
+                <FaSpinner className="w-4 h-4 animate-spin" />
+                <span>Sending...</span>
+              </>
+            ) : (
+              <>
+                <span>Send</span>
+                <FaPaperPlane className="w-4 h-4 rotate-45" />
+              </>
+            )}
           </button>
         </form>
       </footer>

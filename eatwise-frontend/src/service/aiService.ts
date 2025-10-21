@@ -2,7 +2,7 @@ import { AI_REQUEST } from "../utils/axiosConfig";
 
 export async function getChatAI(query: string): Promise<any> {
   try {
-    const response = await AI_REQUEST.post<any>(`/api/rag/chat`, { query });
+    const response = await AI_REQUEST.post<any>(`/rag/chat`, { query });
 
     return response.data;
   } catch (error: any) {
