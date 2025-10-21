@@ -67,3 +67,11 @@ class ChromaDB(VectorDatabase):
                 unique_values.add(metadata[metadata_field])
                 
         return unique_values
+
+    def get_all(self, 
+                collection_name: str, 
+                include: List[str] = ["metadatas", "documents"]) -> dict:
+        
+        collection = self._get_collection(collection_name)
+        
+        return collection.get(include=include)

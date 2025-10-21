@@ -18,6 +18,13 @@ from components.reader import basic_reader
 from components.interfaces import VectorDatabase
 from components.database.chroma_db import ChromaDB
 
+# Ingestor
+from components.ingest_strategy.strategies import (
+    HTMLIngestStrategy,
+    MarkdownIngestStrategy,
+    PlainTextIngestStrategy,
+    BinaryIngestStrategy,
+)
 
 
 class GenerationManager:
@@ -147,6 +154,22 @@ class ReaderManager:
             return None, error_msg
             
         return content, None
+
+        
+class IngestStrategyManager:
+    def __init__(self):
+        self.strategies = [
+            HTMLIngestStrategy(),
+            MarkdownIngestStrategy(),
+            PlainTextIngestStrategy(),
+            BinaryIngestStrategy(),
+        ]
+
+    def get_strategy(self, filename: str):
+        for strategy in self.strategies:
+            if strategy.can_handle(filename):
+                return strategy
+        return None
 
 
 class DatabaseManager:
