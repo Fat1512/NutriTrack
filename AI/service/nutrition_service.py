@@ -1,3 +1,4 @@
+import sys
 import pandas as pd
 from components.manager import EmbeddingManager, DatabaseManager
 

@@ -1,11 +1,13 @@
 package com.tpd.eatwise_server.service.impl;
 
 import com.tpd.eatwise_server.dto.request.FoodCreateRequest;
+import com.tpd.eatwise_server.dto.response.FoodDetailResponse;
 import com.tpd.eatwise_server.dto.response.FoodOverviewResponse;
 import com.tpd.eatwise_server.dto.response.MessageResponse;
 import com.tpd.eatwise_server.dto.response.PageResponse;
 import com.tpd.eatwise_server.entity.Food;
 import com.tpd.eatwise_server.entity.Ingredient;
+import com.tpd.eatwise_server.exceptions.ResourceNotFoundExeption;
 import com.tpd.eatwise_server.mapper.FoodMapper;
 import com.tpd.eatwise_server.repository.FoodRepository;
 import com.tpd.eatwise_server.repository.IngredientRepository;
@@ -86,5 +88,14 @@ public class FoodServiceImpl implements FoodService {
                 .size(pageFood.getSize())
                 .totalElements(pageFood.getTotalElements())
                 .build();
+    }
+
+    @Override
+    public FoodDetailResponse getFood(String id) {
+        Food food = foodRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundExeption("Not found food"));
+
+
+        return foodMapper.convertToDetailResponse(food);
     }
 }

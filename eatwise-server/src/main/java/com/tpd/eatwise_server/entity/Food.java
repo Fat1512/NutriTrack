@@ -20,6 +20,7 @@ import java.util.List;
 public class Food {
     @Id
     private String id;
+    private String name;
     private LocalDateTime createdAt;
     private List<IngredientFood> ingredients;
     private String image;
@@ -27,6 +28,7 @@ public class Food {
     private double totalProtein;
     private double totalFat;
     private double totalCarb;
+
 
     public void addIngredient(Ingredient ingredient, double weight) {
         if (this.ingredients == null)

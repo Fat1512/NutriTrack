@@ -1,0 +1,10 @@
+export { default as StepperComponentModern } from "./StepperComponentModern";
+export { default as MainGoalStep } from "./MainGoalStep";
+export { default as GenderStep } from "./GenderStep";
+export { default as AgeStep } from "./AgeStep";
+export { default as HeightStep } from "./HeightStep";
+export { default as WeightStep } from "./WeightStep";
+export { default as TargetWeightStep } from "./TargetWeightStep";
+export { default as HealthIssuesStep } from "./HealthIssuesStep";
+export { default as DietStep } from "./DietStep";
+export { default as EatingHabitsStep } from "./EatingHabitsStep";
