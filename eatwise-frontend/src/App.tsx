@@ -16,6 +16,7 @@ import { GoalProvider } from "./context/GoalContext";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { DailyProvider } from "./context/DailyContex";
 import NutrientChart from "./feature/dashboard/NutrientChart";
+import Chatbot from "./feature/chatbot/Chatbot";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,6 +59,7 @@ const App = () => {
                     <Route path="scanning" element={<ScanningPage />} />
                     <Route path="/routine" element={<RoutinePage />} />
                     <Route path="/dashboard" element={<NutrientChart />} />
+                    <Route path="/chatbot" element={<Chatbot />} />
                   </Route>
                 </Routes>
               </DailyProvider>
