@@ -1,9 +1,1 @@
-# Docker compose files
-**/docker-compose.yml
-**/docker-compose.yaml
-docker-compose.yml
-docker-compose.yaml
-docker-compose.*.yml
-docker-compose.*.yaml
-docker-compose.override.yml
-docker-compose.override.yaml
+**/.env

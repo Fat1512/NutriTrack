@@ -122,6 +122,7 @@ def rag_chat():
         return jsonify({"error": f"Could not load router_prompt: {e}"}), 500
 
     router_response = rag_llm.generate(router_prompt_str)
+    print(router_response)
     intent = router_response.get("text").strip().upper()
     router_tokens = {
         "prompt_tokens": router_response.get("prompt_tokens", 0),
