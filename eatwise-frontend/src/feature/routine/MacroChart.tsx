@@ -1,35 +1,84 @@
+/*
+ * Copyright 2025 NutriTrack
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import Button from "../../ui/Button";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import MyModal from "../../ui/MyModal";
 
-const macros = [
-  { name: "Protein", value: 35, target: 116, color: "#F87171" },
-  { name: "Carbs", value: 79, target: 214, color: "#FBBF24" },
-  { name: "Fat", value: 46, target: 51, color: "#60A5FA" },
-  { name: "Fibre", value: 14, target: 30, color: "#4ADE80" },
-];
+import { type ConsumeNutrient, type Goal } from "../../context/GoalContext";
 
-export default function MacroChart() {
+const macros = [
+  {
+    name: "Protein",
+    valueField: "consumeProtein",
+    targetField: "goalProtein",
+    color: "#F87171",
+  },
+  {
+    name: "Carbs",
+    valueField: "consumeCarb",
+    targetField: "goalCarb",
+    color: "#FBBF24",
+  },
+  {
+    name: "Fat",
+    valueField: "consumeFat",
+    targetField: "goalFat",
+    color: "#60A5FA",
+  },
+  {
+    name: "Calories",
+    valueField: "consumeCal",
+    targetField: "goalCal",
+    color: "#4ADE80",
+  },
+];
+type ConsumeNutrientKeys =
+  | "consumeProtein"
+  | "consumeCal"
+  | "consumeCarb"
+  | "consumeFat";
+interface MarcroChartProps {
+  goal: Goal;
+  consumeNutrient: ConsumeNutrient;
+}
+const MacroChart: React.FC<MarcroChartProps> = ({ goal, consumeNutrient }) => {
   const [animatedValues, setAnimatedValues] = useState(macros.map(() => 0));
   const [isOpen, setIsOpen] = useState(false);
 
-  function handleOnClose() {
-    setIsOpen(false);
-  }
   useEffect(() => {
     const duration = 500;
     const intervalTime = 20;
     const steps = duration / intervalTime;
 
-    const increments = macros.map((macro) => macro.value / steps);
-
+    const increments = macros.map((macro) => {
+      const value = consumeNutrient[macro.valueField as ConsumeNutrientKeys];
+      return value / steps;
+    });
     let currentStep = 0;
     const interval = setInterval(() => {
       currentStep++;
       setAnimatedValues((prev) =>
-        prev.map((val, i) => Math.min(val + increments[i], macros[i].value))
+        prev.map((val, i) =>
+          Math.min(
+            val + increments[i],
+            consumeNutrient[macros[i].valueField as ConsumeNutrientKeys]
+          )
+        )
       );
       if (currentStep >= steps) clearInterval(interval);
     }, intervalTime);
@@ -37,11 +86,15 @@ export default function MacroChart() {
     return () => clearInterval(interval);
   }, []);
 
+  function handleOnClose() {
+    setIsOpen(false);
+  }
+
   return (
     <>
       <div className="bg-white  p-4 shadow-xl rounded-lg">
         <div className="flex justify-between pb-2">
-          <p className="font-bold text-xl">Nutrients</p>
+          <p className="font-bold text-xl">Consume Nutrients Weekly</p>
           <Button onClick={() => setIsOpen((prev) => !prev)}>Edit</Button>
         </div>
         <div className="grid grid-cols-4 gap-4">
@@ -50,8 +103,8 @@ export default function MacroChart() {
               <div key={macro.name} className="flex flex-col items-center">
                 <div className="w-25 h-25">
                   <CircularProgressbar
-                    value={animatedValues[index]}
-                    maxValue={macro.target}
+                    value={animatedValues[index] || 0}
+                    maxValue={goal[macro.targetField]}
                     text={`${Math.round(animatedValues[index])}`}
                     styles={buildStyles({
                       pathColor: macro.color,
@@ -63,9 +116,16 @@ export default function MacroChart() {
                 </div>
                 <div className="mt-2 text-center">
                   <div className="font-semibold">{macro.name}</div>
-                  <div className="text-sm text-gray-500">/{macro.target}g</div>
+                  <div className="text-sm text-gray-500">
+                    /{goal[macro.targetField]}g
+                  </div>
                   <div className="text-xs text-gray-400">
-                    {Math.round(macro.target - animatedValues[index])}g left
+                    {goal[macro.targetField] - animatedValues[index] > 0
+                      ? Math.round(
+                          goal[macro.targetField] - animatedValues[index]
+                        )
+                      : "0"}
+                    g left
                   </div>
                 </div>
               </div>
@@ -76,4 +136,5 @@ export default function MacroChart() {
       </div>
     </>
   );
-}
+};
+export default MacroChart;

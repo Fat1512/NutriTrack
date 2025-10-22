@@ -1,5 +1,20 @@
+/*
+ * Copyright 2025 NutriTrack
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import { API, AUTH_REQUEST } from "../utils/axiosConfig";
-import { setAccessToken, clearToken, getAccessToken } from "../utils/helper";
+import { setAccessToken, getAccessToken } from "../utils/helper";
 
 export interface LoginCredentials {
   username: string;
@@ -16,6 +31,21 @@ export interface User {
   id: string;
   username: string;
   password?: string;
+  isOnboarded: boolean;
+  mainGoal: string;
+  gender: string;
+  age: number;
+  height: number;
+  weight: number;
+  targetWeight: number;
+  healthIssues: string[];
+  specificDiet: string[];
+  eatingHabits: string;
+  goal_protein: number;
+  goal_cal: number;
+  goal_carb: number;
+  goal_fat: number;
+  daily_goal_cal: number;
 }
 
 export interface TokenDTO {

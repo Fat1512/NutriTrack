@@ -3,27 +3,14 @@ spring:
     name: gppm
   data:
     mongodb:
-      authentication-database: admin
-      database: ${DB_NAME}
-      username: ${MONGO_USERNAME}
-      password: ${MONGO_PASSWORD}
-      host: ${MONGO_HOST}
-      port: 27017
+      uri: ${MONGO_URL}
 app:
   token:
     secret: ${AUTH_SECRET_KEY}
     expirationTime: 200000
-    refreshTime: 23123132
+  ai-server: ${AI_SERVER_URL}
 
 server:
   port: 8080
   servlet:
-    multipart:
-      enabled: true
-      max-file-size: 100MB
-      max-request-size: 50MB
     context-path: /eatwise-service
-
-aws:
-  accessKey:
-  secretKey:

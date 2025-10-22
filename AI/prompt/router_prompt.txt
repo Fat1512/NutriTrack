@@ -1,0 +1,21 @@
+Bạn là một bộ phân loại truy vấn (query classifier) thông minh.
+Nhiệm vụ của bạn là phân loại câu hỏi của người dùng thành MỘT trong các loại sau:
+
+1.  **GREETING**: Các câu chào hỏi, tạm biệt, cảm ơn, hoặc hỏi thăm xã giao.
+    (Ví dụ: "Chào bạn", "Cảm ơn", "Tạm biệt", "Bạn có khỏe không?")
+
+2.  **META_QUERY**: Các câu hỏi về bản thân bạn (AI), khả năng của bạn, hoặc bạn là ai.
+    (Ví dụ: "Bạn là ai?", "Bạn làm được gì?", "Bạn do ai tạo ra?")
+
+3.  **OUT_OF_DOMAIN**: Các câu hỏi KHÔNG liên quan đến chủ đề Sức khỏe, Dinh dưỡng, Thực phẩm, Tập luyện, hoặc Bệnh lý.
+    (Ví dụ: "Giá cổ phiếu hôm nay thế nào?", "Thủ đô của Pháp là gì?", "Hãy viết cho tôi một bài thơ về mèo", "Cách sửa lỗi code Python?")
+
+4.  **RAG_QUERY**: Các câu hỏi liên quan trực tiếp đến chủ đề Sức khỏe, Dinh dưỡng, Thực phẩm, Tập luyện, hoặc Bệnh lý. Đây là những câu hỏi bạn sẽ dùng tài liệu để trả lời.
+    (Ví dụ: "Bao nhiêu calo trong một quả chuối?", "Làm thế nào để giảm mỡ bụng?", "Triệu chứng của bệnh tiểu đường là gì?")
+
+Chỉ trả về MỘT TỪ duy nhất là tên loại (GREETING, META_QUERY, OUT_OF_DOMAIN, RAG_QUERY) dựa trên câu hỏi sau.
+
+Câu hỏi của người dùng:
+{query}
+
+Loại truy vấn:

@@ -1,24 +1,41 @@
+/*
+ * Copyright 2025 NutriTrack
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import type React from "react";
-import type { Meal } from "./FormSettingRoutine";
-import LogModal from "../../ui/LogModal";
 import { useState } from "react";
+
+import RoutineFoodModal, { type Food } from "../../ui/RoutineFoodModal";
 
 interface FormSettingRoutineRow {
   icon: string;
+  setSelectLog: () => void;
   label: string;
-  meals: Meal[];
+  meals: Food[];
 }
 
 const FormSettingRoutineRow: React.FC<FormSettingRoutineRow> = ({
   icon,
+  setSelectLog,
   label,
   meals,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  function handleOnClose() {
-    setIsOpen(false);
+  const [selected, setSelected] = useState<number | null>(null);
+  function handleOnCloseFoodRoutine() {
+    setSelected(null);
   }
+
   return (
     <>
       <div className="bg-white rounded-lg shadow p-4 space-y-2">
@@ -27,11 +44,11 @@ const FormSettingRoutineRow: React.FC<FormSettingRoutineRow> = ({
             <span className="text-xl">{icon}</span>
             <span className="font-semibold">{label}</span>
             <span className="text-gray-500 text-sm">
-              {meals.reduce((sum, m) => sum + m.calories, 0)} cal
+              {meals.reduce((sum, m) => sum + Math.round(m.totalCal), 0)} cal
             </span>
           </div>
           <button
-            onClick={() => setIsOpen(true)}
+            onClick={setSelectLog}
             className="bg-green-100 cursor-pointer text-green-700 px-3 py-1 rounded hover:bg-green-200"
           >
             + Log
@@ -43,6 +60,7 @@ const FormSettingRoutineRow: React.FC<FormSettingRoutineRow> = ({
           <div className="space-y-2">
             {meals.map((item, idx) => (
               <div
+                onClick={() => setSelected(idx + 1)}
                 key={idx}
                 className="flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 cursor-pointer"
               >
@@ -55,7 +73,7 @@ const FormSettingRoutineRow: React.FC<FormSettingRoutineRow> = ({
                   <div>
                     <p className="text-sm font-medium">{item.name}</p>
                     <p className="text-xs text-gray-500">
-                      {item.calories} Calories
+                      {Math.round(item.totalCal)} Calories
                     </p>
                   </div>
                 </div>
@@ -65,7 +83,14 @@ const FormSettingRoutineRow: React.FC<FormSettingRoutineRow> = ({
           </div>
         )}
       </div>
-      <LogModal open={isOpen} onClose={handleOnClose} />
+
+      {selected && (
+        <RoutineFoodModal
+          foodRoutine={meals[selected - 1]}
+          isOpen={selected ? true : false}
+          onClose={handleOnCloseFoodRoutine}
+        />
+      )}
     </>
   );
 };
