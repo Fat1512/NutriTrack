@@ -1,8 +1,6 @@
 from flask import Blueprint, request, jsonify
 import os, tempfile
 import uuid
-import threading
-import asyncio
 
 from werkzeug.utils import secure_filename
 
@@ -10,7 +8,7 @@ from service.pipeline_service import FoodPipeline
 from service.mini_rag_service import MiniRagService 
 from service.history_service import RedisHistoryService
 from service.guardrail_service import RAGGuardrailService
-from service.trigger_service import TriggerService
+from service.watcher_state_service import WatcherStateService
 
 from components.manager import GenerationManager
 from components.manager import PromptManager
@@ -24,7 +22,40 @@ rag_llm = GenerationManager()
 rag_prompts = PromptManager()
 rag_guardrails = RAGGuardrailService()
 history_service = RedisHistoryService()
-trigger_service = TriggerService(rag_service, history_service)
+watcher_state_service = WatcherStateService()
+
+
+@bp.route("/watcher/status", methods=["GET"])
+def get_watcher_status():
+    try:
+        states = watcher_state_service.get_all_states()
+        return jsonify({"status": "success", "watchers": states})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@bp.route("/watcher/toggle", methods=["POST"])
+def toggle_watcher():
+    data = request.json
+    watcher_name = data.get("watcher")
+    enabled_state = data.get("enabled")
+
+    if watcher_name not in ["local", "rss"]:
+        return jsonify({"status": "error", "message": "Invalid 'watcher' name. Must be 'local' or 'rss'."}), 400
+    
+    if not isinstance(enabled_state, bool):
+        return jsonify({"status": "error", "message": "'enabled' field must be a boolean (true or false)."}), 400
+
+    try:
+        watcher_state_service.set_state(watcher_name, enabled_state)
+        return jsonify({
+            "status": "success",
+            "watcher": watcher_name,
+            "new_state": enabled_state
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 @bp.route("/analyze", methods=["POST"])
 def analyze_food():
@@ -277,44 +308,3 @@ def delete_one_document():
         "database_status": db_result,
         "filesystem_status": file_result
     })
-
-
-@bp.route("/rag/trigger-local-scan", methods=["POST"])
-def trigger_local_scan():
-    print("API: Received request to trigger local scan.")
-    try:
-        result = trigger_service.scan_local_directory()
-        return jsonify(result)
-    except Exception as e:
-        print(f"Error during local scan trigger: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-@bp.route("/rag/trigger-rss-poll", methods=["POST"])
-def trigger_rss_poll():
-    print("API: Received request to trigger RSS poll.")
-    
-    def run_async_job_in_thread():
-        print("BackgroundThread: Starting RSS poll...")
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            loop.run_until_complete(trigger_service.poll_rss_feeds_async())
-            print("BackgroundThread: RSS poll completed.")
-        except Exception as e:
-            print(f"BackgroundThread: Error during RSS poll: {e}")
-        finally:
-            loop.close()
-
-    try:
-        thread = threading.Thread(target=run_async_job_in_thread, daemon=True)
-        thread.start()
-        
-        return jsonify({
-            "status": "triggered", 
-            "message": "RSS polling started in the background. Check server logs for progress."
-        }), 202
-    
-    except Exception as e:
-        print(f"Error starting RSS poll thread: {e}")
-        return jsonify({"status": "error", "message": f"Failed to start thread: {str(e)}"}), 500
