@@ -1,10 +1,5 @@
 import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
-import axios from "axios";
-import "./App.css";
-
-interface Document {
-  name: string;
-}
+import { AI_REQUEST } from "../utils/axiosConfig";
 
 interface Message {
   sender: "user" | "bot";
@@ -14,7 +9,7 @@ interface Message {
 
 type ActiveTab = "manage" | "chat";
 
-function App() {
+function AdminPage() {
   const [file, setFile] = useState<File | null>(null);
   const [documents, setDocuments] = useState<string[]>([]);
   const [uploadStatus, setUploadStatus] = useState<string>("");
@@ -22,12 +17,20 @@ function App() {
   const [chatInput, setChatInput] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  
+
   const [conversationId, setConversationId] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("manage");
 
-  const API_URL = "/api";
+  useEffect(() => {
+    // Add admin-page class to body when component mounts
+    document.body.classList.add("admin-page");
+
+    // Remove class when component unmounts
+    return () => {
+      document.body.classList.remove("admin-page");
+    };
+  }, []);
 
   useEffect(() => {
     fetchDocuments();
@@ -35,8 +38,8 @@ function App() {
 
   const fetchDocuments = async () => {
     try {
-      const response = await axios.get<{ documents: string[] }>(
-        `${API_URL}/rag/documents`
+      const response = await AI_REQUEST.get<{ documents: string[] }>(
+        `/rag/documents`
       );
       setDocuments(response.data.documents || []);
     } catch (error) {
@@ -62,7 +65,7 @@ function App() {
     setUploadStatus(`Đang tải lên ${file.name}...`);
 
     try {
-      const response = await axios.post(`${API_URL}/rag/upload`, formData, {
+      const response = await AI_REQUEST.post(`/rag/upload`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -82,7 +85,7 @@ function App() {
       return;
     }
     try {
-      await axios.delete(`${API_URL}/rag/document`, {
+      await AI_REQUEST.delete(`/rag/document`, {
         data: { filename: filename },
       });
       fetchDocuments();
@@ -100,22 +103,21 @@ function App() {
     setChatInput("");
     setIsLoading(true);
 
-
     const payload: { query: string; conversation_id?: string } = {
       query: chatInput,
     };
-    
+
     if (conversationId) {
       payload.conversation_id = conversationId;
     }
 
     try {
-      const response = await axios.post(`${API_URL}/rag/chat`, payload);
+      const response = await AI_REQUEST.post(`/rag/chat`, payload);
 
       const { answer, token_usage, conversation_id } = response.data;
 
       if (conversation_id) {
-        setConversationId(conversation_id); 
+        setConversationId(conversation_id);
       }
 
       const botMessage: Message = {
@@ -142,18 +144,18 @@ function App() {
   };
 
   return (
-    <div className="container">
-      <h1>🤖 Document Assistant</h1>
+    <div className="admin-container">
+      <h1 className="admin-title">🤖 Document Assistant</h1>
 
-      <div className="tabs">
+      <div className="admin-tabs">
         <button
-          className={`tab-btn ${activeTab === "manage" ? "active" : ""}`}
+          className={`admin-tab-btn ${activeTab === "manage" ? "active" : ""}`}
           onClick={() => setActiveTab("manage")}
         >
           <span>📁 Quản lý Tệp</span>
         </button>
         <button
-          className={`tab-btn ${activeTab === "chat" ? "active" : ""}`}
+          className={`admin-tab-btn ${activeTab === "chat" ? "active" : ""}`}
           onClick={() => setActiveTab("chat")}
         >
           <span>💬 Thử Chat</span>
@@ -161,45 +163,60 @@ function App() {
       </div>
 
       {/* --- TAB --- */}
-      <div className="tab-content">
+      <div className="admin-tab-content">
         {/* --- TAB 1: QUẢN LÝ TỆP --- */}
         {activeTab === "manage" && (
-          <div className="section">
+          <div className="admin-section">
             <h2>Quản lý Tài liệu</h2>
 
             {/* Upload Form */}
-            <form onSubmit={handleUpload} className="form-group">
-              <label htmlFor="file-upload">
-                Tải lên tài liệu (PDF, DOCX, MD)
-              </label>
+            <form onSubmit={handleUpload} className="admin-form-group">
+              <h3>Tải lên tài liệu (PDF, DOCX, MD)</h3>
               <input
                 id="file-upload"
                 type="file"
                 onChange={handleFileChange}
                 accept=".pdf,.docx,.md,.txt"
+                className="admin-file-input"
               />
-              <button type="submit" disabled={!file}>
+              <button
+                type="submit"
+                disabled={!file}
+                className="admin-upload-btn"
+              >
                 📤 Tải lên
               </button>
-              {uploadStatus && <p className="status-text">{uploadStatus}</p>}
+              {uploadStatus && (
+                <p
+                  className={`admin-status ${
+                    uploadStatus.includes("thành công")
+                      ? "success"
+                      : uploadStatus.includes("thất bại")
+                      ? "error"
+                      : ""
+                  }`}
+                >
+                  {uploadStatus}
+                </p>
+              )}
             </form>
 
             {/* Danh sách Document */}
-            <div className="doc-list">
+            <div className="admin-doc-list-container">
               <h3>Tài liệu đã tải lên</h3>
               {documents.length === 0 ? (
-                <div className="empty-state">
+                <div className="admin-empty-state">
                   <p>Chưa có tài liệu nào được tải lên.</p>
                   <p>Hãy tải lên tài liệu đầu tiên của bạn!</p>
                 </div>
               ) : (
-                <ul>
+                <ul className="admin-doc-list">
                   {documents.map((doc) => (
                     <li key={doc}>
                       <span>{doc}</span>
                       <button
                         onClick={() => handleDelete(doc)}
-                        className="delete-btn"
+                        className="admin-delete-btn"
                       >
                         🗑️ Xóa
                       </button>
@@ -213,46 +230,54 @@ function App() {
 
         {/* --- TAB 2: CHATBOT --- */}
         {activeTab === "chat" && (
-          <div className="section">
-            
-            <div className="chat-header">
+          <div className="admin-section">
+            <div className="admin-chat-header">
               <h2>Chat với Tài liệu</h2>
-              <button onClick={startNewChat} className="new-chat-btn">
+              <button onClick={startNewChat} className="admin-new-chat-btn">
                 ✨ Bắt đầu Chat mới
               </button>
             </div>
-            
-            <div className="chat-window">
+
+            <div className="admin-chat-window">
               {/* Các tin nhắn */}
-              <div className="chat-messages">
+              <div className="admin-chat-messages">
                 {messages.map((msg, index) => (
-                  <div key={index} className={`message ${msg.sender}`}>
+                  <div key={index} className={`admin-message ${msg.sender}`}>
                     <p>{msg.text}</p>
                     {msg.sender === "bot" && msg.tokens !== undefined && (
-                      <span className="token-count">{msg.tokens} tokens</span>
+                      <span className="admin-token-count">
+                        {msg.tokens} tokens
+                      </span>
                     )}
                   </div>
                 ))}
                 {isLoading && (
-                  <div className="message bot">
+                  <div className="admin-message bot">
                     <p>
-                      Bot đang nhập<span className="loading-dots"></span>
+                      Bot đang nhập<span className="admin-loading-dots"></span>
                     </p>
                   </div>
                 )}
               </div>
 
               {/* Chat Input Form */}
-              <form onSubmit={handleChatSubmit} className="chat-input-form">
+              <form
+                onSubmit={handleChatSubmit}
+                className="admin-chat-input-form"
+              >
                 <input
-                  className="text-black"
+                  className="admin-chat-input"
                   type="text"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder="Hỏi bot về tài liệu của bạn..."
                   disabled={isLoading}
                 />
-                <button type="submit" disabled={isLoading}>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="admin-send-btn"
+                >
                   {isLoading ? "⏳" : "🚀"}
                 </button>
               </form>
@@ -264,4 +289,4 @@ function App() {
   );
 }
 
-export default App;
+export default AdminPage;

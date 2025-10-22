@@ -1,21 +1,22 @@
 version: "3.8"
 services:
   nginx:
-    image: nutritrack/frontend:v5
-    ports:
-      - 80:80
-      - 443:443
+    image: fat1512/frontend:v10
     environment:
       VITE_BASE_URL: /server-api/api/v1
       VITE_AI_URL: /ai-api/api
     volumes:
       - ./eatwise-frontend/server.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - 80:80
+      - 81:81
+      - 443:443
     networks:
       nutri-track-net:
         ipv4_address: 172.20.0.3
 
   backend-server:
-    image: nutritrack/backend:v2
+    image: fat1512/backend:v10
     environment:
       AUTH_SECRET_KEY: fe60f199041040557dc61317117ad37f10d2352cc8f3ccc32abb11056f6a864b
       MONGO_URL: mongodb+srv://nutritrack:123@cluster0.x0imgvl.mongodb.net/nutritrack
@@ -27,9 +28,7 @@ services:
         ipv4_address: 172.20.0.2
 
   ai-server:
-    image: nutritrack/ai:v3
-    ports:
-      - 5000:5000
+    image: fat1512/ai:v10
     environment:
       LLM_PROVIDER: openai
       OPENAI_MODEL: gpt-4o-mini
@@ -44,6 +43,8 @@ services:
       RSS_WATCHER_ENABLED: false
       RSS_MAX_AGE_DAYS: 1
       RSS_MAX_BACKFILL_PAGES: 1
+    ports:
+      - 5000:5000
     networks:
       nutri-track-net:
         ipv4_address: 172.20.0.4

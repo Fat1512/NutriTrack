@@ -16,6 +16,7 @@ import { GoalProvider } from "./context/GoalContext";
 import { DailyProvider } from "./context/DailyContex";
 import NutrientChart from "./feature/dashboard/NutrientChart";
 import Chatbot from "./feature/chatbot/Chatbot";
+import AdminPage from "./page/AdminPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,6 +36,7 @@ const App = () => {
             <BrowserRouter>
               <DailyProvider>
                 <Routes>
+                  <Route path="/admin" element={<AdminPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route
