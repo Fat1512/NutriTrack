@@ -7,6 +7,12 @@ interface Message {
   tokens?: number;
 }
 
+interface WatcherStatus {
+  local: boolean;
+  rss: boolean;
+}
+type WatcherName = "local" | "rss";
+
 type ActiveTab = "manage" | "chat";
 
 function AdminPage() {
@@ -23,17 +29,22 @@ function AdminPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("manage");
 
   useEffect(() => {
-    // Add admin-page class to body when component mounts
     document.body.classList.add("admin-page");
 
-    // Remove class when component unmounts
     return () => {
       document.body.classList.remove("admin-page");
     };
   }, []);
+  const [watcherStatus, setWatcherStatus] = useState<WatcherStatus | null>(
+    null
+  );
+  const [watcherError, setWatcherError] = useState<string>("");
+
+  const API_URL = "/api";
 
   useEffect(() => {
     fetchDocuments();
+    fetchWatcherStatus();
   }, []);
 
   const fetchDocuments = async () => {
@@ -44,6 +55,44 @@ function AdminPage() {
       setDocuments(response.data.documents || []);
     } catch (error) {
       console.error("Lỗi khi tải danh sách tài liệu:", error);
+    }
+  };
+
+  const fetchWatcherStatus = async () => {
+    try {
+      const response = await AI_REQUEST.get<{ watchers: WatcherStatus }>(
+        `/watcher/status`
+      );
+      setWatcherStatus(response.data.watchers);
+      setWatcherError("");
+    } catch (error) {
+      console.error("Lỗi khi tải trạng thái watcher:", error);
+      setWatcherError("Không thể tải trạng thái watcher.");
+    }
+  };
+
+  const handleToggleWatcher = async (
+    watcher: WatcherName,
+    enabled: boolean
+  ) => {
+    try {
+      setWatcherError("");
+      setWatcherStatus((prev) =>
+        prev ? { ...prev, [watcher]: enabled } : null
+      );
+
+      await AI_REQUEST.post(`/watcher/toggle`, {
+        watcher: watcher,
+        enabled: enabled,
+      });
+      await fetchWatcherStatus();
+    } catch (error) {
+      console.error(
+        `Lỗi khi ${enabled ? "bật" : "tắt"} ${watcher} watcher:`,
+        error
+      );
+      setWatcherError(`Không thể thay đổi trạng thái ${watcher}.`);
+      await fetchWatcherStatus();
     }
   };
 
@@ -227,7 +276,72 @@ function AdminPage() {
             </div>
           </div>
         )}
+        {/* --- KIỂM SOÁT WATCHER --- */}
+        <div className="watcher-controls section">
+          <h3>Kiểm soát Watcher Tự động</h3>
+          {watcherError && <p className="status-text error">{watcherError}</p>}
+          {!watcherStatus ? (
+            <p>Đang tải trạng thái...</p>
+          ) : (
+            <div className="watcher-status-list">
+              {/* Local Watcher */}
+              <div className="watcher-item">
+                <span>📁 Watcher Thư mục (Local)</span>
+                <span
+                  className={`status-badge ${
+                    watcherStatus.local ? "enabled" : "disabled"
+                  }`}
+                >
+                  {watcherStatus.local ? "Đang Bật" : "Đang Tắt"}
+                </span>
+                <div className="watcher-buttons">
+                  <button
+                    onClick={() => handleToggleWatcher("local", true)}
+                    disabled={watcherStatus.local}
+                    className="toggle-btn"
+                  >
+                    Bật
+                  </button>
+                  <button
+                    onClick={() => handleToggleWatcher("local", false)}
+                    disabled={!watcherStatus.local}
+                    className="toggle-btn"
+                  >
+                    Tắt
+                  </button>
+                </div>
+              </div>
 
+              {/* RSS Watcher */}
+              <div className="watcher-item">
+                <span>📡 Watcher Tin tức (RSS)</span>
+                <span
+                  className={`status-badge ${
+                    watcherStatus.rss ? "enabled" : "disabled"
+                  }`}
+                >
+                  {watcherStatus.rss ? "Đang Bật" : "Đang Tắt"}
+                </span>
+                <div className="watcher-buttons">
+                  <button
+                    onClick={() => handleToggleWatcher("rss", true)}
+                    disabled={watcherStatus.rss}
+                    className="toggle-btn"
+                  >
+                    Bật
+                  </button>
+                  <button
+                    onClick={() => handleToggleWatcher("rss", false)}
+                    disabled={!watcherStatus.rss}
+                    className="toggle-btn"
+                  >
+                    Tắt
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
         {/* --- TAB 2: CHATBOT --- */}
         {activeTab === "chat" && (
           <div className="admin-section">
