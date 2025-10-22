@@ -1,12 +1,16 @@
 from flask import Blueprint, request, jsonify
 import os, tempfile
 import uuid
+import threading
+import asyncio
 
 from werkzeug.utils import secure_filename
 
 from service.pipeline_service import FoodPipeline
 from service.mini_rag_service import MiniRagService 
 from service.history_service import RedisHistoryService
+from service.guardrail_service import RAGGuardrailService
+from service.trigger_service import TriggerService
 
 from components.manager import GenerationManager
 from components.manager import PromptManager
@@ -18,8 +22,9 @@ pipeline = FoodPipeline()
 rag_service = MiniRagService()
 rag_llm = GenerationManager()
 rag_prompts = PromptManager()
-
+rag_guardrails = RAGGuardrailService()
 history_service = RedisHistoryService()
+trigger_service = TriggerService(rag_service, history_service)
 
 @bp.route("/analyze", methods=["POST"])
 def analyze_food():
@@ -116,26 +121,13 @@ def rag_chat():
     for turn in recent_history_list:
         history_string += f"Người dùng: {turn['query']}\nTrợ lý: {turn['answer']}\n\n"
     
-    try:
-        router_prompt_str = rag_prompts.load("router_prompt", query=query)
-    except Exception as e:
-        return jsonify({"error": f"Could not load router_prompt: {e}"}), 500
 
-    router_response = rag_llm.generate(router_prompt_str)
-    intent = router_response.get("text").strip().upper()
-    router_tokens = {
-        "prompt_tokens": router_response.get("prompt_tokens", 0),
-        "completion_tokens": router_response.get("completion_tokens", 0),
-        "total_tokens": router_response.get("total_tokens", 0)
-    }
+    intent, router_tokens = rag_guardrails.route_intent(query)
 
-    
-    if "GREETING" in intent:
+    if intent == "GREETING":
         try:
             greeting_prompt = rag_prompts.load("greeting_response", query=query)
-            
             final_prompt_with_history = f"{history_string}{greeting_prompt}"
-            
             response = rag_llm.generate(final_prompt_with_history)
             answer = response.get("text", "Xin chào! Tôi có thể giúp gì cho bạn?")
             
@@ -154,12 +146,10 @@ def rag_chat():
         except Exception as e:
             return jsonify({"error": f"Could not load greeting_response prompt: {e}"}), 500
 
-    elif "META_QUERY" in intent:
+    elif intent == "META_QUERY":
         try:
             meta_prompt_template = rag_prompts.load("meta_info")
-            
             final_prompt_with_history = f"{history_string}{meta_prompt_template}\n\nCâu hỏi của người dùng: {query}\nCâu trả lời của bạn:"
-            
             response = rag_llm.generate(final_prompt_with_history)
             answer = response.get("text", "Tôi là một trợ lý AI.")
             
@@ -177,19 +167,33 @@ def rag_chat():
             })
         except Exception as e:
             return jsonify({"error": f"Could not load meta_info prompt: {e}"}), 500
-
-    else:
-        print(f"Executing RAG query for: {query}")
-        context_chunks = rag_service.retrieve_context(query, n_results=3)
-        
-        if not context_chunks:
-            answer = "Tôi không tìm thấy thông tin này trong tài liệu. Bạn vui lòng nói rõ câu hỏi hơn được không?"
+    elif intent == "OUT_OF_DOMAIN":
+        try:
+            answer = "Tôi xin lỗi, tôi chỉ có thể trả lời các câu hỏi liên quan đến chủ đề sức khỏe và dinh dưỡng. Bạn có câu hỏi nào khác về chủ đề này không?"
             
             history_list.append({"query": query, "answer": answer})
             history_service.save_history(conversation_id, history_list)
             
             return jsonify({
-                "answer": answer, 
+                "answer": answer,
+                "token_usage": router_tokens,
+                "conversation_id": conversation_id
+            })
+        except Exception as e:
+            return jsonify({"error": f"Error handling OUT_OF_DOMAIN: {e}"}), 500
+
+    else: 
+        print(f"Executing RAG query for: {query}")
+        context_chunks = rag_service.retrieve_context(query, n_results=3)
+        
+        is_valid, failure_answer = rag_guardrails.check_retrieval(context_chunks)
+        
+        if not is_valid:
+            history_list.append({"query": query, "answer": failure_answer})
+            history_service.save_history(conversation_id, history_list)
+            
+            return jsonify({
+                "answer": failure_answer, 
                 "token_usage": router_tokens,
                 "conversation_id": conversation_id
             })
@@ -273,3 +277,44 @@ def delete_one_document():
         "database_status": db_result,
         "filesystem_status": file_result
     })
+
+
+@bp.route("/rag/trigger-local-scan", methods=["POST"])
+def trigger_local_scan():
+    print("API: Received request to trigger local scan.")
+    try:
+        result = trigger_service.scan_local_directory()
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error during local scan trigger: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@bp.route("/rag/trigger-rss-poll", methods=["POST"])
+def trigger_rss_poll():
+    print("API: Received request to trigger RSS poll.")
+    
+    def run_async_job_in_thread():
+        print("BackgroundThread: Starting RSS poll...")
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(trigger_service.poll_rss_feeds_async())
+            print("BackgroundThread: RSS poll completed.")
+        except Exception as e:
+            print(f"BackgroundThread: Error during RSS poll: {e}")
+        finally:
+            loop.close()
+
+    try:
+        thread = threading.Thread(target=run_async_job_in_thread, daemon=True)
+        thread.start()
+        
+        return jsonify({
+            "status": "triggered", 
+            "message": "RSS polling started in the background. Check server logs for progress."
+        }), 202
+    
+    except Exception as e:
+        print(f"Error starting RSS poll thread: {e}")
+        return jsonify({"status": "error", "message": f"Failed to start thread: {str(e)}"}), 500
