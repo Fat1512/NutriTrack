@@ -5,7 +5,9 @@ import ReactMarkdown from "react-markdown";
 type Message = {
   role: "user" | "bot";
   text: string;
+  conversationId?: string;
 };
+
 const INIT_MESSAGE: Message[] = [
   {
     role: "bot",
@@ -16,6 +18,7 @@ const INIT_MESSAGE: Message[] = [
 export default function Chatbot() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>(INIT_MESSAGE);
+  const [conversationId, setConversationId] = useState(null);
   const { isPending, chatWithAI } = useChatAI();
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -29,13 +32,16 @@ export default function Chatbot() {
     const userMsg: Message = {
       role: "user",
       text,
+      conversationId,
     };
+
     setMessages((m) => [...m, userMsg]);
     setInput("");
     chatWithAI(
-      { query: text },
+      { query: text, conversationId: conversationId },
       {
-        onSuccess: ({ answer }) => {
+        onSuccess: ({ answer, conversation_id }) => {
+          setConversationId(conversation_id);
           setMessages((prev) => [...prev, { role: "bot", text: answer }]);
         },
       }

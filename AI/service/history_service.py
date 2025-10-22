@@ -12,8 +12,10 @@ class RedisHistoryService:
             self.client = redis.Redis(
                 host=os.getenv("REDIS_HOST", "localhost"),
                 port=int(os.getenv("REDIS_PORT", 6379)),
-                db=0,
-                decode_responses=True
+                # db=0,
+                decode_responses=True,
+                username=os.getenv("REDIS_USERNAME", None),
+                password=os.getenv("REDIS_PASSWORD", None)
             )
             self.client.ping()
             self.is_available = True

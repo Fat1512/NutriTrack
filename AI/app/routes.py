@@ -42,7 +42,7 @@ def toggle_watcher():
 
     if watcher_name not in ["local", "rss"]:
         return jsonify({"status": "error", "message": "Invalid 'watcher' name. Must be 'local' or 'rss'."}), 400
-    
+
     if not isinstance(enabled_state, bool):
         return jsonify({"status": "error", "message": "'enabled' field must be a boolean (true or false)."}), 400
 
@@ -151,7 +151,7 @@ def rag_chat():
     history_string = ""
     for turn in recent_history_list:
         history_string += f"Người dùng: {turn['query']}\nTrợ lý: {turn['answer']}\n\n"
-    
+
 
     intent, router_tokens = rag_guardrails.route_intent(query)
 
@@ -201,10 +201,10 @@ def rag_chat():
     elif intent == "OUT_OF_DOMAIN":
         try:
             answer = "Tôi xin lỗi, tôi chỉ có thể trả lời các câu hỏi liên quan đến chủ đề sức khỏe và dinh dưỡng. Bạn có câu hỏi nào khác về chủ đề này không?"
-            
+
             history_list.append({"query": query, "answer": answer})
             history_service.save_history(conversation_id, history_list)
-            
+
             return jsonify({
                 "answer": answer,
                 "token_usage": router_tokens,
@@ -213,18 +213,18 @@ def rag_chat():
         except Exception as e:
             return jsonify({"error": f"Error handling OUT_OF_DOMAIN: {e}"}), 500
 
-    else: 
+    else:
         print(f"Executing RAG query for: {query}")
         context_chunks = rag_service.retrieve_context(query, n_results=3)
         
         is_valid, failure_answer = rag_guardrails.check_retrieval(context_chunks)
-        
+
         if not is_valid:
             history_list.append({"query": query, "answer": failure_answer})
             history_service.save_history(conversation_id, history_list)
             
             return jsonify({
-                "answer": failure_answer, 
+                "answer": failure_answer,
                 "token_usage": router_tokens,
                 "conversation_id": conversation_id
             })
