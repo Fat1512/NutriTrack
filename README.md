@@ -54,9 +54,9 @@
 
 ---
 
-## Kiến trúc dự án (tổng quan)
+## 🏗️ Kiến trúc hệ thống
 
----
+## ![Kiến trúc hệ thống](architecture.png)
 
 ## 🧩 Yêu cầu (Prerequisites)
 
@@ -187,6 +187,34 @@ docker-compose up --build
 | 🍃 **MongoDB**                 |          `27017`          | Hệ quản trị **cơ sở dữ liệu NoSQL** lưu trữ thông tin người dùng và nhật ký dinh dưỡng |
 
 ---
+
+## 🔌 Các Endpoint chính
+
+### Endpoint Backend
+
+- **Base URL (dev):** `http://localhost:8080/eatwise-service/api/v1`
+
+| Method | Endpoint                    | Mô tả                                         |
+| ------ | --------------------------- | --------------------------------------------- |
+| `GET`  | `/foods`                    | Lấy danh sách toàn bộ các món ăn              |
+| `GET`  | `/ingredients`              | Lấy danh sách toàn bộ các nguyên liệu         |
+| `GET`  | `/routine/pickedDate`       | Lấy lịch trình ăn uống theo ngày              |
+| `GET`  | `/routine/statics`          | Thống kê dinh dưỡng của người dùng theo tháng |
+| `GET`  | `/routine/consume-nutrient` | Lấy thông tin các chất người dùng đã tiêu thụ |
+| `POST` | `/routine/food`             | Thêm món ăn vào lịch ăn hàng ngày             |
+
+---
+
+### Endpoint AI Service
+
+| Method   | Endpoint               | Mô tả                                                                                                                                                                                                                                                         |
+| -------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST`   | `/api/analyze`         | Phân tích một hoặc nhiều hình ảnh món ăn. <br>**Input:** `multipart/form-data` chứa file hoặc nhiều file dưới key `images`. <br>**Response:** JSON chứa kết quả phân tích từ `FoodPipeline`. <br>**Note:** File tạm thời được tạo và tự động xóa trên server. |
+| `POST`   | `/api/analyze-routine` | Phân tích thói quen ăn uống và trạng thái dinh dưỡng của người dùng. <br>**Input:** JSON chứa các key `routine` và `userStatus`. <br>**Response:** JSON chứa kết quả phân tích từ `FoodPipeline`.                                                             |
+| `POST`   | `/api/rag/upload`      | Upload file. File sẽ được lưu vào `WATCH_DIR` và được xử lý bởi `LocalFolderWatcher`.                                                                                                                                                                         |
+| `POST`   | `/api/rag/chat`        | Body: `{ "query": "Câu hỏi của bạn" }` <br>Trả về luồng phản hồi RAG dựa trên các tài liệu đã ingest.                                                                                                                                                         |
+| `GET`    | `/api/rag/documents`   | Liệt kê tất cả các tài liệu duy nhất hiện có trong vector store.                                                                                                                                                                                              |
+| `DELETE` | `/api/rag/document`    | Body: `{ "filename": "ten_file_can_xoa.pdf" }` <br>Xóa tài liệu khỏi vector store.                                                                                                                                                                            |
 
 ## ⚖️ Quy Tắc Ứng Xử
 

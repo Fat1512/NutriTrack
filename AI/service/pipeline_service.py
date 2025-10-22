@@ -15,7 +15,8 @@ import time
 import json
 from components.manager import PromptManager
 from components.manager import GenerationManager
-from .nutrition_service import NutritionService
+from service.nutrition_service import NutritionService
+from service.guardrail_service import FoodGuardrailService
 import re
 
 class FoodPipeline:
@@ -52,15 +53,13 @@ class FoodPipeline:
             
             detected_data_full = json.loads(json_str_match.group(0))
             
-            if not detected_data_full.get("is_food"):
-                print("Analysis stopped: Image was determined not to be food.")
-                return {
-                    "dish_name": "Không phải đồ ăn",
-                    "detected_ingredients": [],
-                    "nutrition_per_ingredient": {},
-                    "total_nutrition": {},
-                    "token_usage": token_usage
-                }
+            is_valid, failure_response = FoodGuardrailService.check_is_food(
+                detected_data_full, 
+                token_usage
+            )
+
+            if not is_valid:
+                return failure_response
 
             dish_name = detected_data_full.get("dish_name", "Món ăn không rõ tên")
             detected_ingredients_array = detected_data_full.get("ingredients", [])

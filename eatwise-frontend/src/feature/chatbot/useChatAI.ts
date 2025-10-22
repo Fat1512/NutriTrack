@@ -22,9 +22,9 @@ function useChatAI() {
   const { isPending, mutate: chatWithAI } = useMutation<
     Resposne,
     Error,
-    { query: string }
+    { query: string; conversationId: string }
   >({
-    mutationFn: ({ query }) => getChatAI(query),
+    mutationFn: ({ query, conversationId }) => getChatAI(query, conversationId),
   });
 
   return { isPending, chatWithAI };

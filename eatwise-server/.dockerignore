@@ -1,0 +1,14 @@
+HELP.md
+.gradle
+build
+
+.vscode/
+.docker
+.idea
+
+.git\*
+
+.dockerignore
+Dockerfile
+docker-compose.yml
+db.sql

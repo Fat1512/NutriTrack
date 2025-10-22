@@ -22,6 +22,7 @@ from dateutil import parser as date_parser
 from datetime import datetime, timezone, timedelta
 from components.interfaces import BaseWatcher
 from service.mini_rag_service import MiniRagService
+from service.watcher_state_service import WatcherStateService
 
 
 class RSSWatcher(BaseWatcher):
@@ -31,6 +32,7 @@ class RSSWatcher(BaseWatcher):
         self.check_interval = check_interval_seconds
         self.max_backfill_pages = int(os.getenv("RSS_MAX_BACKFILL_PAGES", "1"))
         self.max_age_days = int(os.getenv("RSS_MAX_AGE_DAYS", "0"))
+        self.state_service = WatcherStateService()
 
         self.rag_service: MiniRagService = None
         self.loop: asyncio.AbstractEventLoop = None
@@ -58,21 +60,31 @@ class RSSWatcher(BaseWatcher):
         print(f"Starting RSSWatcher for {len(self.feed_urls)} feed(s).")
 
         try:
-            await self._run_backfill()
+            if self.state_service.is_enabled('rss'):
+                print("RSSWatcher: ENABLED on startup. Running backfill...")
+                await self._run_backfill()
+                print("Backfill completed. Starting to monitor for new articles...")
+            else:
+                print("RSSWatcher: DISABLED on startup. Backfill skipped.")
 
-            print("Backfill completed. Starting to monitor for new articles...")
             while True:
-                for feed_url in self.feed_urls:
-                    await self._process_feed_url(feed_url, is_backfill=False)
+                if self.state_service.is_enabled('rss'):
+                    print("RSSWatcher: ENABLED. Checking for new articles...")
+                    for feed_url in self.feed_urls:
+                        await self._process_feed_url(feed_url, is_backfill=False)
 
-                if self.max_age_days > 0:
-                    self.rag_service.delete_documents_older_than(
-                        prefix="rss_",
-                        days=self.max_age_days
-                    )
+                    if self.max_age_days > 0:
+                        self.rag_service.delete_documents_older_than(
+                            prefix="rss_",
+                            days=self.max_age_days
+                        )
 
-                print(f"RSSWatcher: Finished checking for new articles. Sleeping for {self.check_interval} seconds...")
-                await asyncio.sleep(self.check_interval)
+                    print(f"RSSWatcher: Finished checking. Sleeping for {self.check_interval} seconds...")
+                    await asyncio.sleep(self.check_interval)
+                
+                else:
+                    print("RSSWatcher: DISABLED. Sleeping for 60s...")
+                    await asyncio.sleep(60)
 
         except asyncio.CancelledError:
             print("RSSWatcher is stopping...")

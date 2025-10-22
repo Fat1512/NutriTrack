@@ -17,7 +17,9 @@ from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from components.interfaces import BaseWatcher
+
 from service.mini_rag_service import MiniRagService
+from service.watcher_state_service import WatcherStateService
 
 class LocalFolderWatcher(BaseWatcher, FileSystemEventHandler):
     def __init__(self, watch_dir: str):
@@ -26,12 +28,19 @@ class LocalFolderWatcher(BaseWatcher, FileSystemEventHandler):
         self.rag_service: MiniRagService = None
         self.loop: asyncio.AbstractEventLoop = None
         self._recent_tasks: dict[str, float] = {}
+        self.state_service = WatcherStateService()
 
     async def start(self, rag_service: MiniRagService, loop: asyncio.AbstractEventLoop):
         self.rag_service = rag_service
         self.loop = loop
         
         os.makedirs(self.watch_dir, exist_ok=True)
+
+        if self.state_service.is_enabled('local'):
+            print("LocalWatcher: ENABLED. Starting initial scan...")
+            await self.scan_and_ingest_existing_files()
+        else:
+            print("LocalWatcher: DISABLED on startup.")
         
         await self.scan_and_ingest_existing_files()
 
@@ -75,18 +84,24 @@ class LocalFolderWatcher(BaseWatcher, FileSystemEventHandler):
         print("File scanning completed.")
 
     def on_created(self, event):
+        if not self.state_service.is_enabled('local'):
+            return
         if not event.is_directory:
             asyncio.run_coroutine_threadsafe(
                 self._schedule_process(event.src_path, "created"), self.loop
             )
 
     def on_modified(self, event):
+        if not self.state_service.is_enabled('local'):
+            return
         if not event.is_directory:
             asyncio.run_coroutine_threadsafe(
                 self._schedule_process(event.src_path, "modified"), self.loop
             )
 
     def on_deleted(self, event):
+        if not self.state_service.is_enabled('local'):
+            return
         if not event.is_directory:
             filename = Path(event.src_path).name
             
