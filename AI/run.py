@@ -1,4 +1,3 @@
-
 import sys
 try:
     __import__('pysqlite3')

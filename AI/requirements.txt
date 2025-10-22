@@ -13,3 +13,5 @@ watchdog
 feedparser
 trafilatura
 pysqlite3-binary
+lxml_html_clean
+redis

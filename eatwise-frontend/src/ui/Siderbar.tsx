@@ -6,7 +6,7 @@ import { useSidebarContext } from "../context/SidebarContext";
 import { TbLayoutDashboardFilled } from "react-icons/tb";
 import { useDailyContext } from "../context/DailyContex";
 import { useGoalContext } from "../context/GoalContext";
-
+import { FaBrain } from "react-icons/fa";
 const NAVIGATION_LIST = [
   {
     icon: AiOutlineSchedule,
@@ -23,6 +23,11 @@ const NAVIGATION_LIST = [
     icon: TbLayoutDashboardFilled,
     label: "Dashboard",
     path: "/dashboard",
+  },
+  {
+    icon: FaBrain,
+    label: "Chatbot",
+    path: "/chatbot",
   },
 ];
 

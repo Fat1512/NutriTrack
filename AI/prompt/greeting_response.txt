@@ -1,0 +1,2 @@
+Người dùng vừa chào bạn: "{query}"
+Hãy chào lại họ một cách thân thiện, tự nhiên và ngắn gọn.

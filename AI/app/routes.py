@@ -1,10 +1,15 @@
 from flask import Blueprint, request, jsonify
 import os, tempfile
+import uuid
+
+from werkzeug.utils import secure_filename
+
 from service.pipeline_service import FoodPipeline
 from service.mini_rag_service import MiniRagService 
+from service.history_service import RedisHistoryService
+
 from components.manager import GenerationManager
 from components.manager import PromptManager
-from werkzeug.utils import secure_filename
 
 bp = Blueprint("ai-api", __name__, url_prefix="/api")
 
@@ -13,6 +18,8 @@ pipeline = FoodPipeline()
 rag_service = MiniRagService()
 rag_llm = GenerationManager()
 rag_prompts = PromptManager()
+
+history_service = RedisHistoryService()
 
 @bp.route("/analyze", methods=["POST"])
 def analyze_food():
@@ -77,7 +84,7 @@ def upload_document():
             
             return jsonify({
                 "status": "success", 
-                "filename_saved": filename,
+                "filename": filename,
                 "message": "File saved to watch directory. Ingest process will start automatically."
             })
 
@@ -89,36 +96,132 @@ def upload_document():
 def rag_chat():
     data = request.json
     query = data.get("query")
-    
+    conversation_id = data.get("conversation_id", None)
+
     if not query:
         return jsonify({"error": "Missing 'query'"}), 400
     
-    context_chunks = rag_service.retrieve_context(query, n_results=3)
+    if not history_service.is_available:
+         return jsonify({"error": "Server error: Chat history service (Redis) is unavailable."}), 503
     
-    if not context_chunks:
-        return jsonify({"answer": "I couldn't find this information in the documents.", "token_usage": {}})
-
-    context_str = "\n\n---\n\n".join(context_chunks)
+    if not conversation_id:
+        conversation_id = str(uuid.uuid4())
+        print(f"Starting new conversation: {conversation_id}")
+    
+    history_list = history_service.load_history(conversation_id)
+    K_TURNS = int(os.getenv("K_TURNS", 5))
+    recent_history_list = history_list[-K_TURNS:]
+    
+    history_string = ""
+    for turn in recent_history_list:
+        history_string += f"Người dùng: {turn['query']}\nTrợ lý: {turn['answer']}\n\n"
     
     try:
-        chat_prompt = rag_prompts.load(
-            "rag_chat",
-            context=context_str,
-            query=query
-        )
+        router_prompt_str = rag_prompts.load("router_prompt", query=query)
     except Exception as e:
-        return jsonify({"error": f"Could not load rag_chat prompt: {e}"}), 500
+        return jsonify({"error": f"Could not load router_prompt: {e}"}), 500
 
-    response = rag_llm.generate(chat_prompt)
+    router_response = rag_llm.generate(router_prompt_str)
+    intent = router_response.get("text").strip().upper()
+    router_tokens = {
+        "prompt_tokens": router_response.get("prompt_tokens", 0),
+        "completion_tokens": router_response.get("completion_tokens", 0),
+        "total_tokens": router_response.get("total_tokens", 0)
+    }
+
     
-    return jsonify({
-        "answer": response.get("text", "Error generating response."),
-        "token_usage": {
-            "prompt_tokens": response.get("prompt_tokens", 0),
-            "completion_tokens": response.get("completion_tokens", 0),
-            "total_tokens": response.get("total_tokens", 0)
-        }
-    })
+    if "GREETING" in intent:
+        try:
+            greeting_prompt = rag_prompts.load("greeting_response", query=query)
+            
+            final_prompt_with_history = f"{history_string}{greeting_prompt}"
+            
+            response = rag_llm.generate(final_prompt_with_history)
+            answer = response.get("text", "Xin chào! Tôi có thể giúp gì cho bạn?")
+            
+            history_list.append({"query": query, "answer": answer})
+            history_service.save_history(conversation_id, history_list)
+            
+            return jsonify({
+                "answer": answer,
+                "token_usage": {
+                    "prompt_tokens": response.get("prompt_tokens", 0),
+                    "completion_tokens": response.get("completion_tokens", 0),
+                    "total_tokens": response.get("total_tokens", 0)
+                },
+                "conversation_id": conversation_id
+            })
+        except Exception as e:
+            return jsonify({"error": f"Could not load greeting_response prompt: {e}"}), 500
+
+    elif "META_QUERY" in intent:
+        try:
+            meta_prompt_template = rag_prompts.load("meta_info")
+            
+            final_prompt_with_history = f"{history_string}{meta_prompt_template}\n\nCâu hỏi của người dùng: {query}\nCâu trả lời của bạn:"
+            
+            response = rag_llm.generate(final_prompt_with_history)
+            answer = response.get("text", "Tôi là một trợ lý AI.")
+            
+            history_list.append({"query": query, "answer": answer})
+            history_service.save_history(conversation_id, history_list)
+            
+            return jsonify({
+                "answer": answer,
+                "token_usage": {
+                    "prompt_tokens": response.get("prompt_tokens", 0),
+                    "completion_tokens": response.get("completion_tokens", 0),
+                    "total_tokens": response.get("total_tokens", 0)
+                },
+                "conversation_id": conversation_id
+            })
+        except Exception as e:
+            return jsonify({"error": f"Could not load meta_info prompt: {e}"}), 500
+
+    else:
+        print(f"Executing RAG query for: {query}")
+        context_chunks = rag_service.retrieve_context(query, n_results=3)
+        
+        if not context_chunks:
+            answer = "Tôi không tìm thấy thông tin này trong tài liệu. Bạn vui lòng nói rõ câu hỏi hơn được không?"
+            
+            history_list.append({"query": query, "answer": answer})
+            history_service.save_history(conversation_id, history_list)
+            
+            return jsonify({
+                "answer": answer, 
+                "token_usage": router_tokens,
+                "conversation_id": conversation_id
+            })
+
+        context_str = "\n\n---\n\n".join(context_chunks)
+        
+        try:
+            chat_prompt = rag_prompts.load(
+                "rag_chat",
+                context=context_str,
+                query=query
+            )
+        except Exception as e:
+            return jsonify({"error": f"Could not load rag_chat prompt: {e}"}), 500
+
+        final_prompt_with_history = f"{history_string}{chat_prompt}"
+        
+        response = rag_llm.generate(final_prompt_with_history)
+        answer = response.get("text", "Error generating response.")
+        
+        history_list.append({"query": query, "answer": answer})
+        history_service.save_history(conversation_id, history_list)
+        
+        return jsonify({
+            "answer": answer,
+            "token_usage": {
+                "prompt_tokens": response.get("prompt_tokens", 0),
+                "completion_tokens": response.get("completion_tokens", 0),
+                "total_tokens": response.get("total_tokens", 0)
+            },
+            "conversation_id": conversation_id
+        })
 
 
 @bp.route("/rag/documents", methods=["GET"])
