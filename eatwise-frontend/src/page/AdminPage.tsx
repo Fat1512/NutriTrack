@@ -1,3 +1,18 @@
+/*
+ * Copyright 2025 NutriTrack
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
 import { AI_REQUEST } from "../utils/axiosConfig";
 
@@ -211,14 +226,11 @@ function AdminPage() {
         </button>
       </div>
 
-      {/* --- TAB --- */}
       <div className="admin-tab-content">
-        {/* --- TAB 1: QUẢN LÝ TỆP --- */}
         {activeTab === "manage" && (
           <div className="admin-section">
             <h2>Quản lý Tài liệu</h2>
 
-            {/* Upload Form */}
             <form onSubmit={handleUpload} className="admin-form-group">
               <h3>Tải lên tài liệu (PDF, DOCX, MD)</h3>
               <input
@@ -250,7 +262,6 @@ function AdminPage() {
               )}
             </form>
 
-            {/* Danh sách Document */}
             <div className="admin-doc-list-container">
               <h3>Tài liệu đã tải lên</h3>
               {documents.length === 0 ? (
@@ -276,7 +287,7 @@ function AdminPage() {
             </div>
           </div>
         )}
-        {/* --- KIỂM SOÁT WATCHER --- */}
+
         <div className="watcher-controls section">
           <h3>Kiểm soát Watcher Tự động</h3>
           {watcherError && <p className="status-text error">{watcherError}</p>}
@@ -284,7 +295,6 @@ function AdminPage() {
             <p>Đang tải trạng thái...</p>
           ) : (
             <div className="watcher-status-list">
-              {/* Local Watcher */}
               <div className="watcher-item">
                 <span>📁 Watcher Thư mục (Local)</span>
                 <span
@@ -312,7 +322,6 @@ function AdminPage() {
                 </div>
               </div>
 
-              {/* RSS Watcher */}
               <div className="watcher-item">
                 <span>📡 Watcher Tin tức (RSS)</span>
                 <span
@@ -342,7 +351,7 @@ function AdminPage() {
             </div>
           )}
         </div>
-        {/* --- TAB 2: CHATBOT --- */}
+
         {activeTab === "chat" && (
           <div className="admin-section">
             <div className="admin-chat-header">
@@ -353,7 +362,6 @@ function AdminPage() {
             </div>
 
             <div className="admin-chat-window">
-              {/* Các tin nhắn */}
               <div className="admin-chat-messages">
                 {messages.map((msg, index) => (
                   <div key={index} className={`admin-message ${msg.sender}`}>
@@ -374,7 +382,6 @@ function AdminPage() {
                 )}
               </div>
 
-              {/* Chat Input Form */}
               <form
                 onSubmit={handleChatSubmit}
                 className="admin-chat-input-form"
