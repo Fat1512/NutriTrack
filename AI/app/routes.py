@@ -7,6 +7,8 @@ from werkzeug.utils import secure_filename
 from service.pipeline_service import FoodPipeline
 from service.mini_rag_service import MiniRagService 
 from service.history_service import RedisHistoryService
+from service.guardrail_service import RAGGuardrailService
+from service.watcher_state_service import WatcherStateService
 
 from components.manager import GenerationManager
 from components.manager import PromptManager
@@ -18,8 +20,42 @@ pipeline = FoodPipeline()
 rag_service = MiniRagService()
 rag_llm = GenerationManager()
 rag_prompts = PromptManager()
-
+rag_guardrails = RAGGuardrailService()
 history_service = RedisHistoryService()
+watcher_state_service = WatcherStateService()
+
+
+@bp.route("/watcher/status", methods=["GET"])
+def get_watcher_status():
+    try:
+        states = watcher_state_service.get_all_states()
+        return jsonify({"status": "success", "watchers": states})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@bp.route("/watcher/toggle", methods=["POST"])
+def toggle_watcher():
+    data = request.json
+    watcher_name = data.get("watcher")
+    enabled_state = data.get("enabled")
+
+    if watcher_name not in ["local", "rss"]:
+        return jsonify({"status": "error", "message": "Invalid 'watcher' name. Must be 'local' or 'rss'."}), 400
+    
+    if not isinstance(enabled_state, bool):
+        return jsonify({"status": "error", "message": "'enabled' field must be a boolean (true or false)."}), 400
+
+    try:
+        watcher_state_service.set_state(watcher_name, enabled_state)
+        return jsonify({
+            "status": "success",
+            "watcher": watcher_name,
+            "new_state": enabled_state
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 @bp.route("/analyze", methods=["POST"])
 def analyze_food():
@@ -116,26 +152,13 @@ def rag_chat():
     for turn in recent_history_list:
         history_string += f"Người dùng: {turn['query']}\nTrợ lý: {turn['answer']}\n\n"
     
-    try:
-        router_prompt_str = rag_prompts.load("router_prompt", query=query)
-    except Exception as e:
-        return jsonify({"error": f"Could not load router_prompt: {e}"}), 500
 
-    router_response = rag_llm.generate(router_prompt_str)
-    intent = router_response.get("text").strip().upper()
-    router_tokens = {
-        "prompt_tokens": router_response.get("prompt_tokens", 0),
-        "completion_tokens": router_response.get("completion_tokens", 0),
-        "total_tokens": router_response.get("total_tokens", 0)
-    }
+    intent, router_tokens = rag_guardrails.route_intent(query)
 
-    
-    if "GREETING" in intent:
+    if intent == "GREETING":
         try:
             greeting_prompt = rag_prompts.load("greeting_response", query=query)
-            
             final_prompt_with_history = f"{history_string}{greeting_prompt}"
-            
             response = rag_llm.generate(final_prompt_with_history)
             answer = response.get("text", "Xin chào! Tôi có thể giúp gì cho bạn?")
             
@@ -154,12 +177,10 @@ def rag_chat():
         except Exception as e:
             return jsonify({"error": f"Could not load greeting_response prompt: {e}"}), 500
 
-    elif "META_QUERY" in intent:
+    elif intent == "META_QUERY":
         try:
             meta_prompt_template = rag_prompts.load("meta_info")
-            
             final_prompt_with_history = f"{history_string}{meta_prompt_template}\n\nCâu hỏi của người dùng: {query}\nCâu trả lời của bạn:"
-            
             response = rag_llm.generate(final_prompt_with_history)
             answer = response.get("text", "Tôi là một trợ lý AI.")
             
@@ -177,19 +198,33 @@ def rag_chat():
             })
         except Exception as e:
             return jsonify({"error": f"Could not load meta_info prompt: {e}"}), 500
-
-    else:
-        print(f"Executing RAG query for: {query}")
-        context_chunks = rag_service.retrieve_context(query, n_results=3)
-        
-        if not context_chunks:
-            answer = "Tôi không tìm thấy thông tin này trong tài liệu. Bạn vui lòng nói rõ câu hỏi hơn được không?"
+    elif intent == "OUT_OF_DOMAIN":
+        try:
+            answer = "Tôi xin lỗi, tôi chỉ có thể trả lời các câu hỏi liên quan đến chủ đề sức khỏe và dinh dưỡng. Bạn có câu hỏi nào khác về chủ đề này không?"
             
             history_list.append({"query": query, "answer": answer})
             history_service.save_history(conversation_id, history_list)
             
             return jsonify({
-                "answer": answer, 
+                "answer": answer,
+                "token_usage": router_tokens,
+                "conversation_id": conversation_id
+            })
+        except Exception as e:
+            return jsonify({"error": f"Error handling OUT_OF_DOMAIN: {e}"}), 500
+
+    else: 
+        print(f"Executing RAG query for: {query}")
+        context_chunks = rag_service.retrieve_context(query, n_results=3)
+        
+        is_valid, failure_answer = rag_guardrails.check_retrieval(context_chunks)
+        
+        if not is_valid:
+            history_list.append({"query": query, "answer": failure_answer})
+            history_service.save_history(conversation_id, history_list)
+            
+            return jsonify({
+                "answer": failure_answer, 
                 "token_usage": router_tokens,
                 "conversation_id": conversation_id
             })

@@ -50,7 +50,7 @@ DB_PROVIDER="chroma"
 
 # Directory for the LocalFolderWatcher
 # The API will also save uploaded files here
-WATCH_DIR="./watched_documents"
+WATCHER_LOCAL_PATH=./storage
 
 # Enable/disable the RSS watcher ("true" or "false")
 RSS_WATCHER_ENABLED="true"
@@ -59,7 +59,7 @@ RSS_WATCHER_ENABLED="true"
 RSS_MAX_AGE_DAYS=1
 
 # RSS Feed (use ',' for separate)
-WATCHER_RSS_URLS=https://suckhoedoisong.vn/dinh-duong.rss, https://vnexpress.net/rss/suc-khoe.rss
+WATCHER_RSS_URLS=https://example/dinh-duong.rss, https://example/rss/suc-khoe.rss
 ```
 
 ### 3. Run app
