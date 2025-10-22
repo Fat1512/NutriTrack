@@ -1,9 +1,7 @@
-// src/App.tsx
-import { useState, useEffect, type FormEvent, type ChangeEvent } from "react"; // Sửa lỗi import
+import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
 import axios from "axios";
 import "./App.css";
 
-// Định nghĩa kiểu dữ liệu
 interface Document {
   name: string;
 }
@@ -14,27 +12,23 @@ interface Message {
   tokens?: number;
 }
 
-// Kiểu (Type) cho state của tab
 type ActiveTab = "manage" | "chat";
 
 function App() {
-  // Trạng thái cho RAG Management
   const [file, setFile] = useState<File | null>(null);
   const [documents, setDocuments] = useState<string[]>([]);
   const [uploadStatus, setUploadStatus] = useState<string>("");
 
-  // Trạng thái cho Chat
   const [chatInput, setChatInput] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  
+  const [conversationId, setConversationId] = useState<string | null>(null);
 
-  // --- STATE MỚI ĐỂ QUẢN LÝ TAB ---
   const [activeTab, setActiveTab] = useState<ActiveTab>("manage");
 
-  // API Endpoints
   const API_URL = "/api";
 
-  // 1. Tải danh sách documents khi component được mount
   useEffect(() => {
     fetchDocuments();
   }, []);
@@ -50,7 +44,6 @@ function App() {
     }
   };
 
-  // 2. Xử lý Upload file (Giữ nguyên)
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setFile(e.target.files[0]);
@@ -84,7 +77,6 @@ function App() {
     }
   };
 
-  // 3. Xử lý Xóa file (Giữ nguyên)
   const handleDelete = async (filename: string) => {
     if (!window.confirm(`Bạn có chắc muốn xóa ${filename} không?`)) {
       return;
@@ -99,7 +91,6 @@ function App() {
     }
   };
 
-  // 4. Xử lý Chat (Giữ nguyên)
   const handleChatSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
@@ -109,12 +100,24 @@ function App() {
     setChatInput("");
     setIsLoading(true);
 
-    try {
-      const response = await axios.post(`${API_URL}/rag/chat`, {
-        query: chatInput,
-      });
 
-      const { answer, token_usage } = response.data;
+    const payload: { query: string; conversation_id?: string } = {
+      query: chatInput,
+    };
+    
+    if (conversationId) {
+      payload.conversation_id = conversationId;
+    }
+
+    try {
+      const response = await axios.post(`${API_URL}/rag/chat`, payload);
+
+      const { answer, token_usage, conversation_id } = response.data;
+
+      if (conversation_id) {
+        setConversationId(conversation_id); 
+      }
+
       const botMessage: Message = {
         sender: "bot",
         text: answer,
@@ -133,11 +136,15 @@ function App() {
     }
   };
 
+  const startNewChat = () => {
+    setMessages([]);
+    setConversationId(null);
+  };
+
   return (
     <div className="container">
       <h1>🤖 Document Assistant</h1>
 
-      {/* --- PHẦN ĐIỀU HƯỚNG TAB --- */}
       <div className="tabs">
         <button
           className={`tab-btn ${activeTab === "manage" ? "active" : ""}`}
@@ -153,7 +160,7 @@ function App() {
         </button>
       </div>
 
-      {/* --- NỘI DUNG TAB --- */}
+      {/* --- TAB --- */}
       <div className="tab-content">
         {/* --- TAB 1: QUẢN LÝ TỆP --- */}
         {activeTab === "manage" && (
@@ -207,7 +214,14 @@ function App() {
         {/* --- TAB 2: CHATBOT --- */}
         {activeTab === "chat" && (
           <div className="section">
-            <h2>Chat với Tài liệu</h2>
+            
+            <div className="chat-header">
+              <h2>Chat với Tài liệu</h2>
+              <button onClick={startNewChat} className="new-chat-btn">
+                ✨ Bắt đầu Chat mới
+              </button>
+            </div>
+            
             <div className="chat-window">
               {/* Các tin nhắn */}
               <div className="chat-messages">

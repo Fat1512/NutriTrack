@@ -84,7 +84,7 @@ def upload_document():
             
             return jsonify({
                 "status": "success", 
-                "filename_saved": filename,
+                "filename": filename,
                 "message": "File saved to watch directory. Ingest process will start automatically."
             })
 
@@ -96,7 +96,7 @@ def upload_document():
 def rag_chat():
     data = request.json
     query = data.get("query")
-    conversation_id = data.get("conversation_id")
+    conversation_id = data.get("conversation_id", None)
 
     if not query:
         return jsonify({"error": "Missing 'query'"}), 400
