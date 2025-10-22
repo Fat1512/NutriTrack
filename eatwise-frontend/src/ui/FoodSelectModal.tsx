@@ -1,3 +1,18 @@
+/*
+ * Copyright 2025 NutriTrack
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import { Box, Modal } from "@mui/material";
 import { FaRegTrashAlt } from "react-icons/fa";
 import Button from "./Button";
@@ -144,12 +159,10 @@ function FoodSelectModal({ meal }: FoodSelectModalProps) {
         <h2 className="text-3xl font-bold text-center mb-5">{name}</h2>
 
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Food Image */}
           <div className="flex-1 rounded overflow-hidden shadow-lg">
             <img src={image} alt={name} className="w-full h-64 object-cover" />
           </div>
 
-          {/* Nutrient Info */}
           <div className="flex-1 space-y-4">
             <h3 className="text-xl font-semibold">Nutrients</h3>
             <div className="grid grid-cols-2 gap-4">
@@ -189,7 +202,6 @@ function FoodSelectModal({ meal }: FoodSelectModalProps) {
           </div>
         </div>
 
-        {/* Ingredients List */}
         <div className="mt-6 rounded-lg p-4 bg-gray-50 shadow">
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-xl font-semibold">Ingredients</h3>

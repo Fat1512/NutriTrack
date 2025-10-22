@@ -1,3 +1,18 @@
+/*
+ * Copyright 2025 NutriTrack
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import React, { useState } from "react";
 import { Box, Typography, Button } from "@mui/material";
 import MainGoalStep from "./MainGoalStep";
@@ -156,10 +171,8 @@ const StepperComponent: React.FC = () => {
         backgroundColor: "#FFFFFF",
         display: "flex",
         flexDirection: "column",
-        // overflow: "hidden",
       }}
     >
-      {/* Progress Bar */}
       <Box
         sx={{
           height: 4,
@@ -177,19 +190,17 @@ const StepperComponent: React.FC = () => {
         />
       </Box>
 
-      {/* Main Content Container */}
       <Box
         sx={{
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          //   maxWidth: { xs: 600, md: 800, lg: 1000 },
+
           mx: "auto",
           width: "70%",
           px: { xs: 2, md: 4 },
         }}
       >
-        {/* Step Info - Top Center */}
         <Box
           sx={{
             py: { xs: 2, md: 3 },
@@ -219,14 +230,12 @@ const StepperComponent: React.FC = () => {
           </Typography>
         </Box>
 
-        {/* Step Content */}
         <Box
           sx={{
             flex: 1,
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            // paddingBottom: 40,
             minHeight: 0,
           }}
         >
@@ -248,7 +257,6 @@ const StepperComponent: React.FC = () => {
           </Box>
         </Box>
 
-        {/* Navigation Buttons */}
         <Box
           sx={{
             p: { xs: 2, md: 3 },
