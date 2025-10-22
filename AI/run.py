@@ -1,3 +1,11 @@
+import sys
+try:
+    __import__('pysqlite3')
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+    print("Using pysqlite3-binary for ChromaDB compatibility")
+except ImportError:
+    print("Warning: pysqlite3-binary not installed, using system SQLite")
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -11,6 +19,7 @@ from flask_cors import CORS
 from service.mini_rag_service import MiniRagService
 from components.watcher.local_watcher import LocalFolderWatcher
 from components.watcher.rss_watcher import RSSWatcher
+
 
 async def start_watchers(loop):
     print("Initializing Watchers...")
