@@ -28,7 +28,7 @@ services:
         ipv4_address: 172.20.0.2
 
   ai-server:
-    image: fat1512/ai:v10
+    image: fat1512/ai:v13
     environment:
       LLM_PROVIDER: openai
       OPENAI_MODEL: gpt-4o-mini
