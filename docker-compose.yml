@@ -43,6 +43,10 @@ services:
       RSS_WATCHER_ENABLED: false
       RSS_MAX_AGE_DAYS: 1
       RSS_MAX_BACKFILL_PAGES: 1
+      REDIS_HOST: redis-12144.c83.us-east-1-2.ec2.redns.redis-cloud.com
+      REDIS_PORT: 12144
+      REDIS_USERNAME: default
+      REDIS_PASSWORD: zVe7PVqLJb2t3zMsSyK5Z8X1rEwBDjL3
     ports:
       - 5000:5000
     networks:
