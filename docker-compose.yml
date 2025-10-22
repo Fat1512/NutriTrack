@@ -1,2 +1,56 @@
-version: 3
+version: "3.8"
 services:
+  nginx:
+    image: nutritrack/frontend:v5
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      VITE_BASE_URL: /server-api/api/v1
+      VITE_AI_URL: /ai-api/api
+    volumes:
+      - ./eatwise-frontend/server.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      nutri-track-net:
+        ipv4_address: 172.20.0.3
+
+  backend-server:
+    image: nutritrack/backend:v2
+    environment:
+      AUTH_SECRET_KEY: fe60f199041040557dc61317117ad37f10d2352cc8f3ccc32abb11056f6a864b
+      MONGO_URL: mongodb+srv://nutritrack:123@cluster0.x0imgvl.mongodb.net/nutritrack
+      AI_SERVER_URL: http://ai-server:5000/api
+    expose:
+      - "8080"
+    networks:
+      nutri-track-net:
+        ipv4_address: 172.20.0.2
+
+  ai-server:
+    image: nutritrack/ai:v3
+    ports:
+      - 5000:5000
+    environment:
+      LLM_PROVIDER: openai
+      OPENAI_MODEL: gpt-4o-mini
+      OPENAI_API_KEY: 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
+      OLLAMA_MODEL: llava-phi3:3.8b
+      OLLAMA_HOST: http://localhost:11434
+      EMBEDDING_PROVIDER: sentence_transformer
+      EMBEDDING_MODEL_NAME: bkai-foundation-models/vietnamese-bi-encoder
+      WATCHER_LOCAL_PATH: ./storage
+      WATCHER_RSS_URLS: https://suckhoedoisong.vn/dinh-duong.rss
+      WATCHER_RSS_INTERVAL: 60
+      RSS_WATCHER_ENABLED: false
+      RSS_MAX_AGE_DAYS: 1
+      RSS_MAX_BACKFILL_PAGES: 1
+    networks:
+      nutri-track-net:
+        ipv4_address: 172.20.0.4
+networks:
+  nutri-track-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1

@@ -13,7 +13,6 @@ import RegisterPage from "./page/RegisterPage";
 import OnboardingPage from "./page/OnboardingPage";
 import ScanningPage from "./page/ScanningPage";
 import { GoalProvider } from "./context/GoalContext";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { DailyProvider } from "./context/DailyContex";
 import NutrientChart from "./feature/dashboard/NutrientChart";
 
