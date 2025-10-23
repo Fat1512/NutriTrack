@@ -1,2 +1,58 @@
-version: 3
+version: "3.8"
 services:
+  nginx:
+    image: fat1512/frontend:v21
+    volumes:
+      - ./eatwise-frontend/server.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      nutri-track-net:
+        ipv4_address: 172.20.0.3
+
+  backend-server:
+    image: fat1512/backend:v20
+    environment:
+      AUTH_SECRET_KEY: ${AUTH_SECRET_KEY}
+      MONGO_URL: ${MONGO_URL}
+      AI_SERVER_URL: ${AI_SERVER_URL}
+    expose:
+      - "8080"
+    networks:
+      nutri-track-net:
+        ipv4_address: 172.20.0.2
+
+  ai-server:
+    image: fat1512/ai:v20
+    environment:
+      LLM_PROVIDER: ${LLM_PROVIDER}
+      OPENAI_MODEL: ${OPENAI_MODEL}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OLLAMA_MODEL: ${OLLAMA_MODEL}
+      OLLAMA_HOST: ${OLLAMA_HOST}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER}
+      EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME}
+      WATCHER_LOCAL_PATH: ${WATCHER_LOCAL_PATH}
+      WATCHER_RSS_URLS: ${WATCHER_RSS_URLS}
+      WATCHER_RSS_INTERVAL: ${WATCHER_RSS_INTERVAL}
+      RSS_WATCHER_ENABLED: ${RSS_WATCHER_ENABLED}
+      RSS_MAX_AGE_DAYS: ${RSS_MAX_AGE_DAYS}
+      RSS_MAX_BACKFILL_PAGES: ${RSS_MAX_BACKFILL_PAGES}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_USERNAME: ${REDIS_USERNAME}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    ports:
+      - 5000:5000
+    networks:
+      nutri-track-net:
+        ipv4_address: 172.20.0.4
+
+networks:
+  nutri-track-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1

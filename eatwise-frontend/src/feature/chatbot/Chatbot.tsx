@@ -1,3 +1,18 @@
+/*
+ * Copyright 2025 NutriTrack
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import { useState, useRef, useEffect } from "react";
 import { FaPaperPlane, FaSpinner } from "react-icons/fa";
 import useChatAI from "./useChatAI";
@@ -5,7 +20,9 @@ import ReactMarkdown from "react-markdown";
 type Message = {
   role: "user" | "bot";
   text: string;
+  conversationId?: string;
 };
+
 const INIT_MESSAGE: Message[] = [
   {
     role: "bot",
@@ -16,6 +33,7 @@ const INIT_MESSAGE: Message[] = [
 export default function Chatbot() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>(INIT_MESSAGE);
+  const [conversationId, setConversationId] = useState(null);
   const { isPending, chatWithAI } = useChatAI();
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -29,13 +47,16 @@ export default function Chatbot() {
     const userMsg: Message = {
       role: "user",
       text,
+      conversationId,
     };
+
     setMessages((m) => [...m, userMsg]);
     setInput("");
     chatWithAI(
-      { query: text },
+      { query: text, conversationId: conversationId },
       {
-        onSuccess: ({ answer }) => {
+        onSuccess: ({ answer, conversation_id }) => {
+          setConversationId(conversation_id);
           setMessages((prev) => [...prev, { role: "bot", text: answer }]);
         },
       }
