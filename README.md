@@ -90,9 +90,15 @@ Trước khi chạy backend, hãy thiết lập các **biến môi trường** c
 
 ```bash
 
-MONGO_URL=your-mongodb-url
-AUTH_SECRET_KEY=your-secret-key
-AI_SERVER_URL=http://localhost:5000/api
+DB_NAME=your_database_name
+MONGO_USERNAME=your_username
+MONGO_PASSWORD=your_password
+MONGO_HOST=your_host
+
+AUTH_SECRET_KEY=your_secret_key
+
+
+AI_SERVER_URL=http://localhost:5000
 ```
 
 ```bash
@@ -130,12 +136,20 @@ Trước khi khởi chạy AI, hãy tạo tệp `.env` trong thư mục `AI` v�
 LLM_PROVIDER=openai o
 OPENAI_MODEL=gpt-4o-mini or OLLAMA_MODEL=llava-phi3:3.8b
 OPENAI_API_KEY=your-api-key
+
+
 OLLAMA_HOST=http://localhost:11434 when using ollama
 EMBEDDING_PROVIDER=sentence_transformer
 EMBEDDING_MODEL_NAME=bkai-foundation-models/vietnamese-bi-encoder
+# EMBEDDING_PROVIDER=ollama
+# EMBEDDING_MODEL_NAME=nomic-embed-text:latest
+
+
+
 WATCHER_LOCAL_PATH=./storage
 WATCHER_RSS_URLS=https://suckhoedoisong.vn/dinh-duong.rss or website support for rss
 WATCHER_RSS_INTERVAL=60
+
 RSS_WATCHER_ENABLED=true
 RSS_MAX_AGE_DAYS=1
 RSS_MAX_BACKFILL_PAGES=1
@@ -206,6 +220,64 @@ docker-compose up --build
 
 Dự án này tuân theo **Bộ Quy Tắc Ứng Xử dành cho cộng đồng**.  
 Vui lòng xem chi tiết trong [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) để biết thêm về các quy tắc và hành vi được chấp nhận.
+
+---
+
+## 🤝 Đóng Góp Cho Dự Án
+
+---
+
+### 🌱 Quy Trình Đóng Góp
+
+#### 1. Fork Repository
+
+Fork repository của dự án trên GitHub để tạo bản sao trong tài khoản của bạn.
+
+```bash
+# Fork repository trên GitHub
+# Clone về máy local
+git clone https://github.com/<your-username>/NutriTrack.git
+cd NutriTrack
+```
+
+#### 2. Tạo nhánh mới
+
+Tạo một branch mới để phát triển tính năng hoặc sửa lỗi.
+
+```bash
+# Tạo và chuyển sang branch mới
+git checkout -b feat/<new-feature>
+
+# Ví dụ
+git checkout -b feat/disaster-tracking
+```
+
+#### 3. Commit Thay Đổi
+
+Sau khi chỉnh sửa, hãy commit các thay đổi với thông điệp rõ ràng.
+
+```bash
+# Thêm file đã thay đổi
+git add .
+
+# Commit với message rõ ràng
+git commit -m "feat: add new feature"
+```
+
+#### 4. Push Branch
+
+```bash
+# Push lên repository của bạn
+git push -u origin feat/<new-feature>
+```
+
+#### 5.Tạo Pull Request (PR)
+
+1. Truy cập repository **gốc** trên GitHub.
+2. Chọn **"New Pull Request"**.
+3. Chọn branch của bạn để merge.
+4. Điền mô tả chi tiết cho thay đổi của bạn.
+5. Gửi **Pull Request (PR)** và chờ phản hồi từ nhóm phát triển. 🚀
 
 ---
 
