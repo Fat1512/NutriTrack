@@ -67,4 +67,10 @@ class OpenAIGenerator(Generator):
             }
 
         except Exception as e:
-            return f"[OpenAI Error] {e}"
+            print(f"[OpenAI Error] {e}")
+            return {
+                "text": f"[OpenAI Error] {e}",
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0
+            }
