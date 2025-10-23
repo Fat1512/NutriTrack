@@ -27,7 +27,6 @@ from service.watcher_state_service import WatcherStateService
 
 class RSSWatcher(BaseWatcher):
     def __init__(self, feed_urls: list[str], check_interval_seconds: int = 3600, save_dir: str | None = None):
-        self.enabled = os.getenv("RSS_WATCHER_ENABLED", "true").lower() == "true"
         self.feed_urls = feed_urls
         self.check_interval = check_interval_seconds
         self.max_backfill_pages = int(os.getenv("RSS_MAX_BACKFILL_PAGES", "1"))
@@ -51,10 +50,6 @@ class RSSWatcher(BaseWatcher):
             print("Auto-delete old RSS files: DISABLED")
 
     async def start(self, rag_service: MiniRagService, loop: asyncio.AbstractEventLoop):
-        if not self.enabled:
-            print("RSSWatcher is DISABLED via environment variable.")
-            return
-
         self.rag_service = rag_service
         self.loop = loop
         print(f"Starting RSSWatcher for {len(self.feed_urls)} feed(s).")

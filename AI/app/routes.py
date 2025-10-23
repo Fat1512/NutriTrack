@@ -15,6 +15,8 @@ from flask import Blueprint, request, jsonify
 import os, tempfile
 import uuid
 
+from app.utils import resize_image
+
 from werkzeug.utils import secure_filename
 
 from service.pipeline_service import FoodPipeline
@@ -73,12 +75,27 @@ def toggle_watcher():
 @bp.route("/analyze", methods=["POST"])
 def analyze_food():
     image_files = request.files.getlist("images")
+    MAX_IMAGE_SIZE = (1024, 1024)
+    IMAGE_QUALITY = 85
 
     image_paths = []
+    processed_image_paths = []
     for file in image_files:
         tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".jpg")
         file.save(tmp.name)
         image_paths.append(tmp.name)
+        try:
+            resized_path = resize_image(tmp.name, MAX_IMAGE_SIZE, IMAGE_QUALITY)
+            processed_image_paths.append(resized_path)
+        except Exception as e:
+            print(f"Failed to resize {tmp.name}: {e}")
+            pass
+
+    if not processed_image_paths:
+        for p in image_paths:
+            try: os.remove(p) 
+            except: pass
+        return jsonify({"error": "Could not process any images."}), 400
 
     result = pipeline.analyze_image(image_paths)
 
