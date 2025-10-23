@@ -264,13 +264,19 @@ function FoodSelectModal({ meal }: FoodSelectModalProps) {
           </ul>
         </div>
 
-        {/* Actions */}
         <div className="mt-6 flex justify-end gap-4">
           <Button onClick={handleOnClose} variant="danger">
             Cancel
           </Button>
-          <Button onClick={handleOnApply} variant="primary">
-            Apply
+          <Button
+            disabled={isPending}
+            onClick={handleOnApply}
+            variant="primary"
+            className={`transition-all ${
+              isPending ? "bg-gray-400 cursor-not-allowed opacity-70" : ""
+            }`}
+          >
+            {isPending ? <MiniSpinner /> : "Apply"}
           </Button>
         </div>
       </Box>
