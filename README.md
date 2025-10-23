@@ -90,15 +90,9 @@ Trước khi chạy backend, hãy thiết lập các **biến môi trường** c
 
 ```bash
 
-DB_NAME=your_database_name
-MONGO_USERNAME=your_username
-MONGO_PASSWORD=your_password
-MONGO_HOST=your_host
-
-AUTH_SECRET_KEY=your_secret_key
-
-
-AI_SERVER_URL=http://localhost:5000
+MONGO_URL=your-mongodb-url
+AUTH_SECRET_KEY=your-secret-key
+AI_SERVER_URL=http://localhost:5000/api
 ```
 
 ```bash
@@ -136,20 +130,12 @@ Trước khi khởi chạy AI, hãy tạo tệp `.env` trong thư mục `AI` v�
 LLM_PROVIDER=openai o
 OPENAI_MODEL=gpt-4o-mini or OLLAMA_MODEL=llava-phi3:3.8b
 OPENAI_API_KEY=your-api-key
-
-
 OLLAMA_HOST=http://localhost:11434 when using ollama
 EMBEDDING_PROVIDER=sentence_transformer
 EMBEDDING_MODEL_NAME=bkai-foundation-models/vietnamese-bi-encoder
-# EMBEDDING_PROVIDER=ollama
-# EMBEDDING_MODEL_NAME=nomic-embed-text:latest
-
-
-
 WATCHER_LOCAL_PATH=./storage
 WATCHER_RSS_URLS=https://suckhoedoisong.vn/dinh-duong.rss or website support for rss
 WATCHER_RSS_INTERVAL=60
-
 RSS_WATCHER_ENABLED=true
 RSS_MAX_AGE_DAYS=1
 RSS_MAX_BACKFILL_PAGES=1
