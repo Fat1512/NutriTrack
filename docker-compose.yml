@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   nginx:
-    image: fat1512/frontend:v21
+    image: fat1512/frontend:v31
     volumes:
       - ./eatwise-frontend/server.conf:/etc/nginx/conf.d/default.conf
     ports:
@@ -24,7 +24,7 @@ services:
         ipv4_address: 172.20.0.2
 
   ai-server:
-    image: fat1512/ai:v20
+    image: fat1512/ai:v30
     environment:
       LLM_PROVIDER: ${LLM_PROVIDER}
       OPENAI_MODEL: ${OPENAI_MODEL}
