@@ -13,6 +13,9 @@
 # limitations under the License.
 import pandas as pd
 from components.manager import EmbeddingManager, DatabaseManager
+import os, json
+from datetime import datetime
+from service.history_service import RedisHistoryService
 
 class NutritionService:
     def __init__(self, csv_path="data/ingredients_metadata.csv"):
@@ -21,6 +24,7 @@ class NutritionService:
         
         self.db = DatabaseManager()
         self.collection_name = "nutrition_ingredients"
+        self.redis_logger = RedisHistoryService()
 
         if self.db.count(self.collection_name) == 0:
             print("Indexing data to Chroma DB...")
@@ -61,9 +65,56 @@ class NutritionService:
         return final_results
     
     def find_for_list(self, ingredients):
+        from service.guardrail_service import FoodGuardrailService
+
         results = {}
+        redis_logger = self.redis_logger
+        guardrail = FoodGuardrailService()
+
+        candidate_pairs = []
+        raw_results = {}
+
         for ing in ingredients:
             matches = self.find_similar(ing)
             if matches:
+                raw_results[ing] = matches
+                candidate_pairs.append({
+                    "ingredient": ing,
+                    "matched": matches[0]["ingr"]
+                })
+            else:
+                raw_results[ing] = []
+
+        check_result = guardrail.check_valid_batch_with_gpt(candidate_pairs)
+
+        for ing, matches in raw_results.items():
+            if not matches:
+                self._log_missing(redis_logger, ing)
+                results[ing] = []
+                continue
+
+            db_ing_name = matches[0]["ingr"]
+            if check_result.get(ing, False):
                 results[ing] = matches
+            else:
+                self._log_missing(redis_logger, ing)
+                results[ing] = []
+
         return results
+
+
+    @staticmethod
+    def _log_missing(redis_logger, ing):
+        try:
+            if redis_logger.is_available:
+                entry = {"ingredient": ing, "timestamp": datetime.now().isoformat()}
+                redis_logger.client.lpush(
+                    "nutrition:missing_ingredients",
+                    json.dumps(entry, ensure_ascii=False)
+                )
+                redis_logger.client.expire("nutrition:missing_ingredients", redis_logger.ttl)
+                print(f"[WARN] Logged missing ingredient to Redis: {ing}")
+            else:
+                print(f"[WARN] Redis unavailable — cannot log {ing}")
+        except Exception as e:
+            print(f"[ERROR] Failed to log {ing}: {e}")
