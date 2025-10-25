@@ -24,7 +24,7 @@ services:
         ipv4_address: 172.20.0.2
 
   ai-server:
-    image: fat1512/ai:v32
+    image: fat1512/ai:v33
     environment:
       LLM_PROVIDER: ${LLM_PROVIDER}
       OPENAI_MODEL: ${OPENAI_MODEL}
