@@ -171,6 +171,7 @@ const StepperComponent: React.FC = () => {
         backgroundColor: "#FFFFFF",
         display: "flex",
         flexDirection: "column",
+        overflow: "hidden",
       }}
     >
       <Box
@@ -195,10 +196,11 @@ const StepperComponent: React.FC = () => {
           flex: 1,
           display: "flex",
           flexDirection: "column",
-
           mx: "auto",
           width: "70%",
           px: { xs: 2, md: 4 },
+          overflow: "hidden",
+          minHeight: 0,
         }}
       >
         <Box
@@ -235,8 +237,10 @@ const StepperComponent: React.FC = () => {
             flex: 1,
             display: "flex",
             flexDirection: "column",
-            justifyContent: "center",
+            justifyContent: "flex-start",
             minHeight: 0,
+            overflow: "hidden",
+            mb: 2, // Add margin bottom to prevent overlap with buttons
           }}
         >
           <Box
@@ -248,7 +252,7 @@ const StepperComponent: React.FC = () => {
               p: { xs: 3, md: 4 },
               display: "flex",
               flexDirection: "column",
-              justifyContent: "center",
+              flex: 1,
               overflow: "auto",
               maxHeight: "100%",
             }}
@@ -263,6 +267,11 @@ const StepperComponent: React.FC = () => {
             display: "flex",
             justifyContent: "space-between",
             flexShrink: 0,
+            borderTop: "1px solid #F0F0F0",
+            backgroundColor: "#FFFFFF",
+            position: "sticky",
+            bottom: 0,
+            zIndex: 10,
           }}
         >
           <Button

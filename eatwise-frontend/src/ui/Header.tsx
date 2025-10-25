@@ -47,15 +47,17 @@ const Header = () => {
 
   return (
     <header className="flex justify-between items-center p-4 bg-white shadow-md rounded-b-lg mb-6">
-      {/* Logo */}
       <div
         className="cursor-pointer transition-transform hover:scale-105"
         onClick={() => navigate("/routine")}
       >
-        <img className="h-20" src="/public/logo.png" alt="Logo" />
+        <img
+          className="h-20"
+          src="https://eatwise-bucket.s3.us-east-1.amazonaws.com/logo.png"
+          alt="Logo"
+        />
       </div>
 
-      {/* User Menu */}
       {user && (
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Tooltip title="Account settings">

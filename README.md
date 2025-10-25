@@ -223,6 +223,64 @@ Vui lòng xem chi tiết trong [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) để 
 
 ---
 
+## 🤝 Đóng Góp Cho Dự Án
+
+---
+
+### 🌱 Quy Trình Đóng Góp
+
+#### 1. Fork Repository
+
+Fork repository của dự án trên GitHub để tạo bản sao trong tài khoản của bạn.
+
+```bash
+# Fork repository trên GitHub
+# Clone về máy local
+git clone https://github.com/<your-username>/NutriTrack.git
+cd NutriTrack
+```
+
+#### 2. Tạo nhánh mới
+
+Tạo một branch mới để phát triển tính năng hoặc sửa lỗi.
+
+```bash
+# Tạo và chuyển sang branch mới
+git checkout -b feat/<new-feature>
+
+# Ví dụ
+git checkout -b feat/disaster-tracking
+```
+
+#### 3. Commit Thay Đổi
+
+Sau khi chỉnh sửa, hãy commit các thay đổi với thông điệp rõ ràng.
+
+```bash
+# Thêm file đã thay đổi
+git add .
+
+# Commit với message rõ ràng
+git commit -m "feat: add new feature"
+```
+
+#### 4. Push Branch
+
+```bash
+# Push lên repository của bạn
+git push -u origin feat/<new-feature>
+```
+
+#### 5.Tạo Pull Request (PR)
+
+1. Truy cập repository **gốc** trên GitHub.
+2. Chọn **"New Pull Request"**.
+3. Chọn branch của bạn để merge.
+4. Điền mô tả chi tiết cho thay đổi của bạn.
+5. Gửi **Pull Request (PR)** và chờ phản hồi từ nhóm phát triển. 🚀
+
+---
+
 ## 🧾 Giấy Phép
 
 Dự án này được phân phối theo **Giấy phép Apache License 2.0**.  
