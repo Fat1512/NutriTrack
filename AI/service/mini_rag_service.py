@@ -133,9 +133,6 @@ class MiniRagService:
             cutoff_dt = datetime.now(timezone.utc) - timedelta(days=days)
             print(f"Deleting documents with prefix '{prefix}' published before {cutoff_dt.isoformat()}...")
 
-            # --- BẮT ĐẦU LOGIC MỚI ---
-            
-            # 1. Lấy TẤT CẢ metadata từ DB bằng phương thức mới
             db_data = self.db.get_all(
                 collection_name=self.collection_name,
                 include=["metadatas"]
@@ -146,24 +143,18 @@ class MiniRagService:
                 print("No documents found in the collection. Nothing to check.")
                 return 0
 
-            # 2. Xây dựng một dict để theo dõi ngày cũ nhất của mỗi file
-            #    và lọc các file có prefix
-            #    Format: { "filename": "oldest_date_found" }
             document_dates = {}
             
             for meta in all_metadatas:
                 filename = meta.get("source")
-                pub_date_str = meta.get("publication_date") # Lấy ngày xuất bản từ metadata
+                pub_date_str = meta.get("publication_date")
 
                 if not filename or not pub_date_str:
-                    # Bỏ qua chunk này nếu nó không có 'source' hoặc 'publication_date'
                     continue
                 
-                # Chỉ quan tâm đến các file có prefix
                 if not filename.startswith(prefix):
                     continue
                     
-                # Parse ngày
                 try:
                     pub_date_dt = date_parser.parse(pub_date_str)
                     if pub_date_dt.tzinfo is None:
@@ -172,12 +163,9 @@ class MiniRagService:
                     print(f"Skipping check for {filename}: Cound not parse date '{pub_date_str}'. Error: {e}")
                     continue
 
-                # Vì tất cả các chunk của một file đều có cùng 1 ngày, 
-                # chúng ta chỉ cần lưu lại ngày đầu tiên tìm thấy.
                 if filename not in document_dates:
                     document_dates[filename] = pub_date_dt
 
-            # 3. Lặp qua danh sách đã lọc và xóa nếu quá cũ
             if not document_dates:
                 print(f"No documents with prefix '{prefix}' and valid 'publication_date' found.")
                 return 0
@@ -188,11 +176,9 @@ class MiniRagService:
             for filename, pub_date in document_dates.items():
                 if pub_date < cutoff_dt:
                     print(f"🗑️ Deleting stale file: {filename} (Published: {pub_date.isoformat()})")
-                    # Gọi hàm delete_document hiện có (sẽ xóa tất cả các chunk của file)
                     self.delete_document(filename)
                     deleted_count += 1
 
-            # --- KẾT THÚC LOGIC MỚI ---
 
             print(f"Stale document check complete. Deleted {deleted_count} document(s).")
             return deleted_count

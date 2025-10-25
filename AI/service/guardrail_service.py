@@ -39,6 +39,51 @@ class FoodGuardrailService:
             
         return True, {}
 
+    @staticmethod
+    def check_valid_batch_with_gpt(pairs: list) -> dict:
+        from components.manager import GenerationManager
+        import json
+
+        if not pairs:
+            return {}
+
+        llm = GenerationManager()
+        prompt = f"""
+        You are a food domain expert.
+
+        Below is a list of ingredient pairs: the user's detected ingredient and 
+        the closest match found in the database. 
+        For each pair, determine whether both refer to the *same food item or type* 
+        (e.g., "tofu" and "bean curd" → true; "perilla leaf" and "tea leaf" → false).
+
+        Return ONLY a JSON array in this format:
+        [
+        {{"ingredient": "original_name", "matched": "db_name", "same_type": true/false}},
+        ...
+        ]
+
+        Pairs to check:
+        {json.dumps(pairs, ensure_ascii=False, indent=2)}
+        """
+
+        try:
+            response = llm.generate(prompt)
+            text = response.get("text", "")
+            json_start = text.find("[")
+            json_end = text.rfind("]")
+            if json_start == -1 or json_end == -1:
+                print("[WARN] GPT guardrail: No valid JSON returned.")
+                return {}
+
+            parsed = json.loads(text[json_start:json_end + 1])
+            return {
+                item["ingredient"]: bool(item.get("same_type", False))
+                for item in parsed if "ingredient" in item
+            }
+        except Exception as e:
+            print(f"[ERROR] GPT batch guardrail failed: {e}")
+            return {}
+
 
 class RAGGuardrailService:
     def __init__(self):
