@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   nginx:
-    image: fat1512/frontend:v32
+    image: fat1512/frontend:v40
     volumes:
       - ./eatwise-frontend/server.conf:/etc/nginx/conf.d/default.conf
     ports:
@@ -12,7 +12,7 @@ services:
         ipv4_address: 172.20.0.3
 
   backend-server:
-    image: fat1512/backend:v20
+    image: fat1512/backend:v40
     environment:
       AUTH_SECRET_KEY: ${AUTH_SECRET_KEY}
       MONGO_URL: ${MONGO_URL}
@@ -24,7 +24,7 @@ services:
         ipv4_address: 172.20.0.2
 
   ai-server:
-    image: fat1512/ai:v33
+    image: fat1512/ai:v40
     environment:
       LLM_PROVIDER: ${LLM_PROVIDER}
       OPENAI_MODEL: ${OPENAI_MODEL}
