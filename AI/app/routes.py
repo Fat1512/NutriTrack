@@ -252,27 +252,6 @@ def rag_chat():
         is_valid, failure_answer = rag_guardrails.check_retrieval(context_chunks)
 
         if not is_valid:
-            try:
-                if history_service.is_available:
-                    log_entry = {
-                        "query": query,
-                        "conversation_id": conversation_id,
-                        "timestamp": datetime.now().isoformat()
-                    }
-                    history_service.client.lpush(
-                        "rag:missing_queries",
-                        json.dumps(log_entry, ensure_ascii=False)
-                    )
-                    history_service.client.expire(
-                        "rag:missing_queries",
-                        history_service.ttl
-                    )
-                    print(f"[WARN] RAG - Logged missing query to Redis: {query}")
-                else:
-                    print(f"[WARN] Redis unavailable — cannot log missing RAG query: {query}")
-            except Exception as e:
-                print(f"[ERROR] Failed to log missing RAG query: {e}")
-
             history_list.append({"query": query, "answer": failure_answer})
             history_service.save_history(conversation_id, history_list)
             
@@ -296,32 +275,10 @@ def rag_chat():
         final_prompt_with_history = f"{history_string}{chat_prompt}"
         
         response = rag_llm.generate(final_prompt_with_history)
-        raw_text = response.get("text", "").strip()
-
-        answer = raw_text
-        found = "Tôi chưa có đủ thông tin để trả lời câu hỏi này" not in raw_text
+        answer = response.get("text", "Error generating response.")
         
         history_list.append({"query": query, "answer": answer})
         history_service.save_history(conversation_id, history_list)
-        if not found:
-            try:
-                if history_service.is_available:
-                    log_entry = {
-                        "query": query,
-                        "conversation_id": conversation_id,
-                        "timestamp": datetime.now().isoformat()
-                    }
-                    history_service.client.lpush(
-                        "rag:missing_queries",
-                        json.dumps(log_entry, ensure_ascii=False)
-                    )
-                    history_service.client.expire(
-                        "rag:missing_queries",
-                        history_service.ttl
-                    )
-                    print(f"[WARN] RAG - Logged missing query to Redis: {query}")
-            except Exception as e:
-                print(f"[ERROR] Failed to log missing RAG query: {e}")
         
         return jsonify({
             "answer": answer,
