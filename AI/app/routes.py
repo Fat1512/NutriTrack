@@ -298,13 +298,8 @@ def rag_chat():
         response = rag_llm.generate(final_prompt_with_history)
         raw_text = response.get("text", "").strip()
 
-        try:
-            parsed = json.loads(raw_text)
-            answer = parsed.get("answer", "Error parsing model output.")
-            found = parsed.get("found", True)
-        except Exception:
-            answer = raw_text
-            found = "Tôi chưa có đủ thông tin" not in raw_text
+        answer = raw_text
+        found = "Tôi chưa có đủ thông tin để trả lời câu hỏi này" not in raw_text
         
         history_list.append({"query": query, "answer": answer})
         history_service.save_history(conversation_id, history_list)
